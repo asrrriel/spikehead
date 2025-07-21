@@ -2,7 +2,7 @@
 
 set -x
 
-PLATFORM=win32-gl
+PLATFORM=win32
 
 mkdir -p bin/$PLATFORM
 

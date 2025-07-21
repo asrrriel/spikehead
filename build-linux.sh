@@ -2,7 +2,7 @@
 
 set -x
 
-PLATFORM=linux-gl  # or whatever platform you want
+PLATFORM=linux
 
 mkdir -p bin/$PLATFORM
 
@@ -11,11 +11,8 @@ PLATFORM_FILES=$(find src/platform/$PLATFORM -name '*.cpp' -print)
 
 ALL_CPP="$SRC_FILES $PLATFORM_FILES"
 
-INCLUDE_XCB="-Ilib/libxcb/build/include -Ilib/xcb-proto/build/include"
-LIB_XCB="-Llib/libxcb/build/lib -lxcb -lXau -lXdmcp"
-
 CFLAGS="-Isrc/core -Isrc/platform/$PLATFORM -Isrc/core/platform_glue -DPLATFORM=\"$PLATFORM\""
-LDFLAGS=""
+LDFLAGS="-lGL -lX11"
 
 CLANG_CMD="clang++ -std=c++20 -O2 $INCLUDE_XCB $CFLAGS -c"
 
@@ -33,9 +30,7 @@ done
 echo "]" >> compile_commands.json
 
 clang++ -std=c++20 -O2 \
-  $INCLUDE_XCB \
   $CFLAGS \
   $ALL_CPP \
-  $LIB_XCB \
   $LDFLAGS \
   -o bin/$PLATFORM/release
