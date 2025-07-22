@@ -1,4 +1,4 @@
-#include "window.h"
+#include "platform.h"
 #include <windef.h>
 #include <windows.h>
 #include <GL/gl.h>
@@ -82,13 +82,18 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
     Win32Context* ctx = reinterpret_cast<Win32Context*>(context);
     if (!ctx) return 0;
 
+    RECT rect = { 0, 0, (int)width, (int)height };
+    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
+    int new_width = rect.right - rect.left;
+    int new_height = rect.bottom - rect.top;
+
     HWND hwnd = CreateWindowEx(
         0,
         MAKEINTATOM(ctx->classAtom),
         "Untitled Window",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        (int)width, (int)height,
+        new_width, new_height,
         NULL,
         NULL,
         ctx->hInstance,
@@ -219,4 +224,8 @@ void platform_destroy_gl_context(platform_gl_context_t gl_context){
     wglDeleteContext(ctx->glc);
     DeleteDC(ctx->dc);
     delete ctx;
+}
+
+void* platform_get_proc_address(const char* name){
+    return (void*)wglGetProcAddress((LPCSTR)name);
 }

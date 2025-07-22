@@ -7,11 +7,12 @@ PLATFORM=linux
 mkdir -p bin/$PLATFORM
 
 SRC_FILES=$(find src/core -name '*.cpp' -print)
+RENDERER_FILES=$(find src/renderer -name '*.cpp' -print)
 PLATFORM_FILES=$(find src/platform/$PLATFORM -name '*.cpp' -print)
 
-ALL_CPP="$SRC_FILES $PLATFORM_FILES"
+ALL_CPP="$SRC_FILES $PLATFORM_FILES $RENDERER_FILES"
 
-CFLAGS="-Isrc/core -Isrc/platform/$PLATFORM -Isrc/core/platform_glue -DPLATFORM=\"$PLATFORM\""
+CFLAGS="-Isrc/core -Isrc/platform/$PLATFORM -Isrc/misc -Isrc/renderer -DPLATFORM=\"$PLATFORM\""
 LDFLAGS="-lGL -lX11"
 
 CLANG_CMD="clang++ -std=c++20 -O2 $INCLUDE_XCB $CFLAGS -c"

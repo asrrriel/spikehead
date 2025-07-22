@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
-#include "window.h"
+#include "platform.h"
 
 struct platform_context {
     Display* display;
@@ -170,4 +170,8 @@ void platform_swap_buffers(platform_gl_context_t gl_context) {
 void platform_destroy_gl_context(platform_gl_context_t gl_context) {
     glx_context* ctx = reinterpret_cast<glx_context*>(gl_context);
     glXDestroyContext(ctx->x_display, ctx->gl_context);
+}
+
+void* platform_get_proc_address(const char* name){
+    return (void*)glXGetProcAddress((const GLubyte*)name);
 }

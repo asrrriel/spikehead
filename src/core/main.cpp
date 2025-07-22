@@ -1,9 +1,5 @@
-#include "platform_glue/window.h"
-#include "window.h"
-#include "GL/gl.h"
-#include <iostream>
-#include <thread>
-#include <chrono>
+#include "platform.h"
+#include "renderer.h"
 
 int main() {
     platform_context_t ctx = platform_init();
@@ -16,25 +12,15 @@ int main() {
     platform_set_title(ctx, window, "Hello " PLATFORM "!");
     platform_show_window(ctx, window);
 
-    platform_gl_context_t gl_context = platform_create_gl_context(ctx, window);
-    platform_make_context_current(gl_context);
-
-    const char* version = (const char*)glGetString(GL_VERSION);
-    std::cout << "OpenGL version: " << version << '\n';
+    renderer_init(ctx, window);
+    renderer_setbgcol(1.0f, 0.0f, 0.0f);
     
     while(!platform_should_close(ctx, window)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f); // bright red
-        glClear(GL_COLOR_BUFFER_BIT);
-        platform_swap_buffers(gl_context);
-
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR) {
-            std::cerr << "GL error: " << err << "\n";
-        }
+        renderer_clear();
+        renderer_swap();
     }
-    platform_destroy_gl_context(gl_context);
+
+    renderer_deinit();
     platform_destroy_window(ctx, window);
     platform_deinit(ctx);
 

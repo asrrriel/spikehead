@@ -7,11 +7,12 @@ PLATFORM=win32
 mkdir -p bin/$PLATFORM
 
 SRC_FILES=$(find src/core -name '*.cpp' -print)
+RENDERER_FILES=$(find src/renderer -name '*.cpp' -print)
 PLATFORM_FILES=$(find src/platform/$PLATFORM -name '*.cpp' -print)
 
-ALL_CPP="$SRC_FILES $PLATFORM_FILES"
+ALL_CPP="$SRC_FILES $PLATFORM_FILES $RENDERER_FILES"
 
-CFLAGS="-Isrc/core -Isrc/platform/$PLATFORM -Isrc/core/platform_glue -DPLATFORM=\"$PLATFORM\""
+CFLAGS="-Isrc/core -Isrc/platform/$PLATFORM -Isrc/misc -Isrc/renderer -DPLATFORM=\"$PLATFORM\" -pthread"
 LDFLAGS="-static -lopengl32 -luser32 -lgdi32 -lkernel32 -lshell32 -lpthread"
 
 TARGET="x86_64-w64-mingw32"
