@@ -4,6 +4,18 @@
 #include <chrono>
 #include <thread>
 
+const char* vertexShaderSrc = R"glsl(
+    #version 330 core
+    layout(location = 0) in vec3 aPos;
+    void main() { gl_Position = vec4(aPos, 1.0); }
+)glsl";
+
+const char* fragmentShaderSrc = R"glsl(
+    #version 330 core
+    out vec4 FragColor;
+    void main() { FragColor = vec4(1, 0.5, 0.2, 1); }
+)glsl";
+
 int main() {
     platform_context_t ctx = platform_init();
     if (!ctx) {
@@ -18,6 +30,14 @@ int main() {
     if(!renderer_init(ctx, window)){
         exit(69);
     }
+
+    renderer_unbatched_object_t obj = create_object(
+        (float[]){0.0f,  0.5f, 0.0f,-0.5f, -0.5f, 0.0f,0.5f, -0.5f, 0.0f},
+        9,
+        (unsigned int[]){0,1,2},
+        3,
+        create_shader(vertexShaderSrc, fragmentShaderSrc)
+    );
     
     while(!platform_should_close(ctx, window)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -35,9 +55,10 @@ int main() {
         float b = fabs(sin(hue + 4.188));
         
         renderer_setbgcol(r,g,b);
-        
-        
         renderer_clear();
+
+        renderer_draw_object(obj);
+
         renderer_swap();
     }
 
