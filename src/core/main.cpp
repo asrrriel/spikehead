@@ -6,14 +6,23 @@
 
 const char* vertexShaderSrc = R"glsl(
     #version 330 core
-    layout(location = 0) in vec3 aPos;
-    void main() { gl_Position = vec4(aPos, 1.0); }
+    layout(location = 0) in vec2 aPos;
+    layout(location = 1) in vec2 aUV;
+
+out vec2 UV;
+
+void main(){
+    UV = aUV;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
 )glsl";
 
 const char* fragmentShaderSrc = R"glsl(
     #version 330 core
+    in vec2 UV;
     out vec4 FragColor;
-    void main() { FragColor = vec4(1, 0.5, 0.2, 1); }
+    uniform sampler2D texture1;
+    void main() { FragColor = texture(texture1, UV); }
 )glsl";
 
 int main() {
@@ -31,12 +40,36 @@ int main() {
         exit(69);
     }
 
-    renderer_unbatched_object_t obj = create_object(
-        (float[]){0.0f,  0.5f, 0.0f,-0.5f, -0.5f, 0.0f,0.5f, -0.5f, 0.0f},
-        9,
-        (unsigned int[]){0,1,2},
-        3,
-        create_shader(vertexShaderSrc, fragmentShaderSrc)
+    // 4 vertices, each with pos (x,y,z) and normal (nx,ny,nz)
+    float vertices[] = {
+        // positions        // normals
+        0.5f,  0.5f,  1.0f, 1.0f,  // top right
+        -0.5f,  0.5f,  0.0f, 1.0f,  // top left
+        -0.5f, -0.5f,  0.0f, 0.0f,  // bottom left
+        0.5f, -0.5f,  1.0f, 0.0f,  // bottom right
+    };
+
+    // 6 indices for 2 triangles forming the square
+    unsigned int indices[] = {
+        0, 1, 2,
+        0, 3, 2
+    };
+
+    uint8_t texture[4*4] = {
+        255,0,0,255, // top left pixel
+        0,0,0,255, // top right pixel
+        0,0,0,255, // bottom left pixel
+        255,0,0,255, // bottom right pixel
+    };
+
+    renderer_unbatched_object_t obj = create_object_textured(
+        vertices,
+        16,
+        indices,
+        6,
+        create_shader(vertexShaderSrc, fragmentShaderSrc),
+        create_texture(texture, 2, 2),
+        "texture1"
     );
     
     while(!platform_should_close(ctx, window)) {
@@ -44,10 +77,8 @@ int main() {
         auto now = std::chrono::steady_clock::now();
         auto duration = now.time_since_epoch();
 
-        // convert duration to floating seconds
         double seconds = duration_cast<std::chrono::duration<double>>(duration).count();
 
-        // get fractional part between 0 and 1
         float hue = std::fmod(seconds, 3.1415);
         
         float r = fabs(sin(hue));
