@@ -2,6 +2,7 @@
 #define __WINDOW_H__
 
 #include <cstdint>
+#include <string>
 
 // Windowing stuff
 typedef std::uintptr_t platform_context_t;
@@ -17,7 +18,7 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
 
 bool platform_should_close(platform_context_t context, platform_window_t window);
 
-bool platform_set_title(platform_context_t context, platform_window_t window, const char* title);
+bool platform_set_title(platform_context_t context, platform_window_t window, std::string title);
 void platform_show_window(platform_context_t context, platform_window_t window);
 void platform_destroy_window(platform_context_t context, platform_window_t window);
 

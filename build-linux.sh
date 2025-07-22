@@ -16,13 +16,15 @@ LDFLAGS="-lGL -lX11"
 
 CLANG_CMD="clang++ -std=c++20 -O2 $INCLUDE_XCB $CFLAGS -c"
 
+ESCAPED_CLANG_CMD=$(printf '%s' "$CLANG_CMD" | sed 's/"/\\"/g')
+
 # Build compile_commands.json
 echo "[" > compile_commands.json
 SEP=""
 for SRC in $ALL_CPP; do
     echo "$SEP{" >> compile_commands.json
     echo "  \"directory\": \"$(pwd)\"," >> compile_commands.json
-    echo "  \"command\": \"$CLANG_CMD $SRC\"," >> compile_commands.json
+    echo "  \"command\": \"$ESCAPED_CLANG_CMD $SRC\"," >> compile_commands.json
     echo "  \"file\": \"$SRC\"" >> compile_commands.json
     echo -n "}" >> compile_commands.json
     SEP=","

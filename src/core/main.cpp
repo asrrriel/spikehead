@@ -33,9 +33,7 @@ int main() {
         if (err != GL_NO_ERROR) {
             std::cerr << "GL error: " << err << "\n";
         }
-
     }
-
     platform_destroy_gl_context(gl_context);
     platform_destroy_window(ctx, window);
     platform_deinit(ctx);

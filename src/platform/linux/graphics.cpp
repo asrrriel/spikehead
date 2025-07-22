@@ -3,6 +3,7 @@
 #include <GL/glx.h>
 #include <cstddef>
 #include <iostream>
+#include <string>
 #include <cstring>
 #include "window.h"
 
@@ -52,10 +53,10 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
     return reinterpret_cast<platform_window_t>(window);
 }
 
-bool platform_set_title(platform_context_t context, platform_window_t window, const char* title) {
+bool platform_set_title(platform_context_t context, platform_window_t window, std::string title) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     ::Window win = reinterpret_cast<::Window>(window);
-    XStoreName(ctx->display, win, title);
+    XStoreName(ctx->display, win, title.c_str());
     return true;
 }
 
