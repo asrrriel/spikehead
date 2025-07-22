@@ -25,8 +25,6 @@ void platform_destroy_window(platform_context_t context, platform_window_t windo
 // OpenGL Stuff
 typedef std::uintptr_t platform_gl_context_t;  
 
-void* platform_get_proc_address(const char* name);
-
 platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window);
 void platform_make_context_current(platform_gl_context_t gl_context);
 void platform_swap_buffers(platform_gl_context_t gl_context);

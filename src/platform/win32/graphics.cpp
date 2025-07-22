@@ -225,7 +225,3 @@ void platform_destroy_gl_context(platform_gl_context_t gl_context){
     DeleteDC(ctx->dc);
     delete ctx;
 }
-
-void* platform_get_proc_address(const char* name){
-    return (void*)wglGetProcAddress((LPCSTR)name);
-}

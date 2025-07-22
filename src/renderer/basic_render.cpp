@@ -1,5 +1,6 @@
 #include "platform.h"
 #include "renderer.h"
+#include "third_party/include/glad/glad.h"
 #include "GL/gl.h"
 #include <iostream>
 
@@ -16,10 +17,16 @@ bool renderer_init(platform_context_t context, platform_window_t window){
     gl_context = platform_create_gl_context(context, window);
     platform_make_context_current(gl_context);
 
+    if(!gladLoadGL()){
+        std::cerr << "Failed to initialize GLAD\n";
+        return false;
+    }
+
     const char* version = (const char*)glGetString(GL_VERSION);
     std::cout << "OpenGL version: " << version << '\n'; 
 
     __renderer_print_errors();
+
     return true;
 }
 bool renderer_setbgcol(float r, float g, float b){
