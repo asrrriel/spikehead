@@ -11,10 +11,10 @@
 struct platform_context {
     Display* display;
     Atom wm_delete_window;
-    XVisualInfo* vi;
+    GLXFBConfig fbc;
 
-    platform_context(Display* _display, Atom _wm_delete_window, XVisualInfo* _vi) 
-    : display(_display), wm_delete_window(_wm_delete_window), vi(_vi) {}
+    platform_context(Display* _display, Atom _wm_delete_window, GLXFBConfig _fbc) 
+    : display(_display), wm_delete_window(_wm_delete_window), fbc(_fbc) {}
 };
 
 struct glx_context {
@@ -35,10 +35,27 @@ platform_context_t platform_init() {
 
     Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", False);
 
-    GLint attribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-    XVisualInfo *vi = glXChooseVisual(display, 0, attribs);
+    int attribs[] = {
+        GLX_X_RENDERABLE, True,
+        GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
+        GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+        GLX_RED_SIZE, 8,
+        GLX_GREEN_SIZE, 8,
+        GLX_BLUE_SIZE, 8,
+        GLX_ALPHA_SIZE, 8,
+        GLX_DEPTH_SIZE, 24,
+        GLX_STENCIL_SIZE, 8,
+        GLX_DOUBLEBUFFER, True,
+        None
+    };
 
-    platform_context* ctx = new platform_context(display, wm_delete_window,vi);
+    int fbcount;
+    GLXFBConfig* fbc = glXChooseFBConfig(display, DefaultScreen(display), attribs, &fbcount);
+    GLXFBConfig bestFbc = fbc[0]; // pick one
+    XFree(fbc);
+
+    platform_context* ctx = new platform_context(display, wm_delete_window,bestFbc);
     return reinterpret_cast<platform_context_t>(ctx);
 }
 
@@ -110,7 +127,24 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
     platform_context* pctx = reinterpret_cast<platform_context*>(context);
     Window win = reinterpret_cast<Window>(window);
 
-    GLXContext glc = glXCreateContext(pctx->display, pctx->vi, NULL, GL_TRUE);
+    typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+
+    glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 
+        (glXCreateContextAttribsARBProc)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
+
+    if (!glXCreateContextAttribsARB) {
+        std::cerr << "glXCreateContextAttribsARB not available.\n";
+        exit(1);
+    }
+
+    int attribs[] = {
+        GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+        GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+        GLX_CONTEXT_PROFILE_MASK_ARB,  GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+        None
+    };
+
+    GLXContext glc = glXCreateContextAttribsARB(pctx->display,pctx->fbc, 0, True, attribs);
 
     if (glc == NULL) {
         std::cerr << "Failed to create GLX context\n";

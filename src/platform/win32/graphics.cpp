@@ -1,8 +1,12 @@
 #include "window.h"
 #include <windef.h>
 #include <windows.h>
+#include <GL/gl.h>
+#include <GL/wglext.h>
 #include <string>
 #include <iostream>
+#include <wingdi.h>
+#include <winnt.h>
 
 struct Win32Context {
     HINSTANCE hInstance;
@@ -154,7 +158,40 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
         return 0;
     }
 
-    HGLRC glc = wglCreateContext(dc);
+    //FUCK YOU MICROSOFT
+    HGLRC tglc = wglCreateContext(dc);
+    if(!tglc){
+        std::cerr << "Failed to create temporary GL context\n";
+        return 0;
+    }
+
+    if(!wglMakeCurrent(dc, tglc)){
+        std::cerr << "Failed to make temporary GL context current\n";
+        wglDeleteContext(tglc);
+        return 0;
+    }
+
+    typedef HGLRC (*wglCreateContextAttribsARBProc)(HDC, HGLRC, const int*);
+
+    wglCreateContextAttribsARBProc wglCreateContextAttribsARB = 
+    (wglCreateContextAttribsARBProc)wglGetProcAddress((const LPCSTR)"wglCreateContextAttribsARB");
+
+    if(!wglCreateContextAttribsARB){
+        std::cerr << "Failed to load wglCreateContextAttribsARB\n";
+        return 0;
+    }
+
+    wglMakeCurrent(nullptr, nullptr); // cant let our temorary context leak out
+    wglDeleteContext(tglc);
+
+    int attribs[] = {
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+        WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0
+    };
+
+    HGLRC glc = wglCreateContextAttribsARB(dc, 0, attribs);
     if(!glc) {
         std::cerr << "Failed to create GL context\n";
         ReleaseDC(win->hwnd, dc);
