@@ -1,6 +1,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <GL/glx.h>
+#include <X11/Xutil.h>
 #include <cstddef>
 #include <iostream>
 #include <string>
@@ -10,23 +11,34 @@
 struct platform_context {
     Display* display;
     Atom wm_delete_window;
+    XVisualInfo* vi;
+
+    platform_context(Display* _display, Atom _wm_delete_window, XVisualInfo* _vi) 
+    : display(_display), wm_delete_window(_wm_delete_window), vi(_vi) {}
 };
 
 struct glx_context {
     GLXContext gl_context;
     ::Display* x_display;
     ::Window window;
+
+    glx_context(GLXContext _gl_context, ::Display* _x_display, ::Window _window) 
+    : gl_context(_gl_context), x_display(_x_display), window(_window) {}
 };
 
 platform_context_t platform_init() {
-    platform_context* ctx = new platform_context;
-    ctx->display = XOpenDisplay(nullptr);
-    if (!ctx->display) {
+    ::Display *display = XOpenDisplay(nullptr);
+    if (!display) {
         std::cerr << "Cannot open X11 display\n";
-        delete ctx;
         return 0;
     }
-    ctx->wm_delete_window = XInternAtom(ctx->display, "WM_DELETE_WINDOW", False);
+
+    Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", False);
+
+    GLint attribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+    XVisualInfo *vi = glXChooseVisual(display, 0, attribs);
+
+    platform_context* ctx = new platform_context(display, wm_delete_window,vi);
     return reinterpret_cast<platform_context_t>(ctx);
 }
 
@@ -64,15 +76,23 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     ::Window win = reinterpret_cast<::Window>(window);
 
+    bool toret = false;
+
     while (XPending(ctx->display)) {
         XEvent event;
         XNextEvent(ctx->display, &event);
 
-        if (event.type == ClientMessage && static_cast<Atom>(event.xclient.data.l[0]) == ctx->wm_delete_window)
-            return true;
+        switch(event.type) {
+            case ClientMessage:
+                if (static_cast<Atom>(event.xclient.data.l[0]) == ctx->wm_delete_window)
+                    toret = true;
+                break;
+            case DestroyNotify:
+                toret = true;
+        }
 
     }
-    return false;
+    return toret;
 }
 
 void platform_show_window(platform_context_t context, platform_window_t window) {
@@ -90,19 +110,14 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
     platform_context* pctx = reinterpret_cast<platform_context*>(context);
     Window win = reinterpret_cast<Window>(window);
 
-    GLint attribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-    XVisualInfo *vi = glXChooseVisual(pctx->display, 0, attribs);
-    GLXContext glc = glXCreateContext(pctx->display, vi, NULL, GL_TRUE);
+    GLXContext glc = glXCreateContext(pctx->display, pctx->vi, NULL, GL_TRUE);
 
     if (glc == NULL) {
         std::cerr << "Failed to create GLX context\n";
         return 0;
     }
 
-    glx_context* ctx = new glx_context;
-    ctx->gl_context = glc;
-    ctx->x_display = pctx->display;
-    ctx->window = win;
+    glx_context* ctx = new glx_context(glc, pctx->display, win);
     return reinterpret_cast<platform_gl_context_t>(ctx);
 }
 
