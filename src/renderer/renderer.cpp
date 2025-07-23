@@ -27,8 +27,13 @@ bool renderer_init(platform_context_t context, platform_window_t window){
         return false;
     }
 
-    const char* version = (const char*)glGetString(GL_VERSION);
-    std::cout << "OpenGL version: " << version << '\n'; 
+    const char* vendor = (const char*)glGetString(GL_VERSION);
+    GLint major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+    std::cout << "OpenGL version: " <<  major << '.' << minor << '\n';
+    std::cout << "OpenGL vendor: " << vendor << '\n'; 
 
     __renderer_print_errors();
 
