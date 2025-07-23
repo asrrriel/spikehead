@@ -1,7 +1,6 @@
 {
     "test_img" : {
-        "type": 69,
-        "path":       "test_fallback.jpg",
+        "type": 0,
         "path-win32": "test_win32.png",
         "path-linux": "test_linux.png" 
     }
