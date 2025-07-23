@@ -1,6 +1,8 @@
 #include "platform.h"
 #include "renderer.h"
+#include "assets.h"
 #include "math.h"
+#include <iostream>
 #include <chrono>
 #include <thread>
 
@@ -40,6 +42,16 @@ int main() {
         exit(69);
     }
 
+    if(!load_asset_pack(find_asset_pack())){
+        exit(42);
+    }
+
+    asset_descriptor_t test_img = lookup_asset("test_img");
+
+    std::cout << "test_img error: " << test_img.error << std::endl;
+    std::cout << "test_img type: " << test_img.type << std::endl;
+    std::cout << "test_img path: " << test_img.path << std::endl;
+
     // 4 vertices, each with pos (x,y,z) and normal (nx,ny,nz)
     float vertices[] = {
         // positions        // normals
@@ -68,7 +80,7 @@ int main() {
         indices,
         6,
         create_shader(vertexShaderSrc, fragmentShaderSrc),
-        create_texture(texture, 2, 2),
+        load_texture(test_img),
         "texture1"
     );
     

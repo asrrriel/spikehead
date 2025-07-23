@@ -1,0 +1,99 @@
+#pragma once
+
+#include <string>
+#include "renderer.h"
+
+struct asset_pack_location_t {
+    bool in_memory;
+    union{
+        std::string path;
+        void* data; // TODO: libzip stuff
+    };
+
+
+    asset_pack_location_t() : in_memory(false), data(nullptr) {}
+
+    // Destructor: destroy active member if needed
+    ~asset_pack_location_t() {
+        if (!in_memory) {
+            path.~basic_string();
+        }
+    }
+
+    // Copy constructor
+    asset_pack_location_t(const asset_pack_location_t& other) : in_memory(other.in_memory) {
+        if (in_memory) {
+            data = other.data;
+        } else {
+            new (&path) std::string(other.path);
+        }
+    }
+
+    // Copy assignment
+    asset_pack_location_t& operator=(const asset_pack_location_t& other) {
+        if (this == &other) return *this;
+
+        if (!in_memory) {
+            path.~basic_string();
+        }
+
+        in_memory = other.in_memory;
+
+        if (in_memory) {
+            data = other.data;
+        } else {
+            new (&path) std::string(other.path);
+        }
+
+        return *this;
+    }
+
+    // Move constructor
+    asset_pack_location_t(asset_pack_location_t&& other) noexcept : in_memory(other.in_memory) {
+        if (in_memory) {
+            data = other.data;
+        } else {
+            new (&path) std::string(std::move(other.path));
+        }
+    }
+
+    // Move assignment
+    asset_pack_location_t& operator=(asset_pack_location_t&& other) noexcept {
+        if (this == &other) return *this;
+
+        if (!in_memory) {
+            path.~basic_string();
+        }
+
+        in_memory = other.in_memory;
+
+        if (in_memory) {
+            data = other.data;
+        } else {
+            new (&path) std::string(std::move(other.path));
+        }
+
+        return *this;
+    }
+
+};
+
+enum asset_type_t {
+    ASSET_TYPE_IMAGE,
+    ASSET_TYPE_SHADER,
+    ASSET_TYPE_FONT,
+    ASSET_TYPE_NATIVE,
+    ASSET_TYPE_UNKNOWN
+};
+
+struct asset_descriptor_t {
+    bool error;
+    asset_type_t type;
+    std::string path;
+};
+
+asset_pack_location_t find_asset_pack();
+bool load_asset_pack(asset_pack_location_t pack);
+asset_descriptor_t lookup_asset(std::string intern_id);
+
+texture_t load_texture(asset_descriptor_t descriptor);
