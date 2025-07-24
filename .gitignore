@@ -1,7 +1,9 @@
-lib/
+obj/
+tmp/
 bin/
 compile_commands.json
 .cache/
 
 # DO NOT REMOVE FOR LICENSING REASONS
-src/core/assets/libs/ 
+src/lib/simdjson/ 
+src/lib/nothings/ 

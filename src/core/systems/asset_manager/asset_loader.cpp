@@ -1,12 +1,12 @@
-#include "assets.h"
+#include "sys/assets.h"
 #include <cstdint>
 #include <filesystem>
 #include <string>
-#include "libs/simdjson.h"
-#include "renderer.h"
+#include "simdjson/simdjson.h"
+#include "sys/renderer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "libs/stb_image.h"
+#include "nothings/stb_image.h"
 
 static struct {
     simdjson::ondemand::document doc;

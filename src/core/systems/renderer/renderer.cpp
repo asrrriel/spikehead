@@ -1,10 +1,10 @@
 #include "platform.h"
-#include "third_party/include/glad/glad.h"
+#include "glad/include/glad/glad.h"
 #include "GL/gl.h"
-#include "renderer.h"
-#include "primitives/vbo.h"
-#include "primitives/vao.h"
-#include "primitives/ibo.h"
+#include "sys/renderer.h"
+#include "gl_abstraction/vbo.h"
+#include "gl_abstraction/vao.h"
+#include "gl_abstraction/ibo.h"
 #include <cstdint>
 #include <iostream>
 #include <sys/types.h>

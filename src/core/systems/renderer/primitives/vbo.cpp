@@ -1,5 +1,5 @@
-#include "vbo.h"
-#include "third_party/include/glad/glad.h"
+#include "gl_abstraction/vbo.h"
+#include "glad/include/glad/glad.h"
 #include "GL/gl.h"
 
 

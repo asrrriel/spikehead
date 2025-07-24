@@ -1,5 +1,5 @@
-#include "ibo.h"
-#include "third_party/include/glad/glad.h"
+#include "gl_abstraction/ibo.h"
+#include "glad/include/glad/glad.h"
 #include "GL/gl.h"
 #include <GL/glext.h>
 

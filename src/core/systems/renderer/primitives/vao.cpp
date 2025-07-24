@@ -1,6 +1,6 @@
-#include "third_party/include/glad/glad.h"
+#include "glad/include/glad/glad.h"
 #include "GL/gl.h"
-#include "vao.h"
+#include "gl_abstraction/vao.h"
 
 VAO::VAO(){
     glGenVertexArrays(1, &ID);

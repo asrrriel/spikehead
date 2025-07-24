@@ -1,6 +1,6 @@
 #include "platform.h"
-#include "renderer.h"
-#include "assets.h"
+#include "sys/renderer.h"
+#include "sys/assets.h"
 #include "math.h"
 #include <iostream>
 #include <chrono>
