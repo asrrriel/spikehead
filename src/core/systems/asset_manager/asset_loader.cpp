@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <string>
 #include "simdjson/simdjson.h"
-#include "sys/renderer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "nothings/stb_image.h"
@@ -85,23 +84,4 @@ asset_descriptor_t lookup_asset(std::string intern_id) {
     toret.error = false;
 
     return toret;
-}
-
-texture_t load_texture(asset_descriptor_t descriptor){
-    if (descriptor.error){
-        return {};
-    }
-
-    //TODO: in memory assets
-
-    int width, height, channels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(descriptor.path.c_str(), &width, &height, &channels, 0);
-
-    if(!data){
-        std::cerr << "Failed to load texture '" << descriptor.path << "'\n";
-        return {};
-    }
-
-    return create_texture(data, width, height);
 }

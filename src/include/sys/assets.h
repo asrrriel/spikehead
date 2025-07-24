@@ -95,5 +95,3 @@ struct asset_descriptor_t {
 asset_pack_location_t find_asset_pack();
 bool load_asset_pack(asset_pack_location_t pack);
 asset_descriptor_t lookup_asset(std::string intern_id);
-
-texture_t load_texture(asset_descriptor_t descriptor);

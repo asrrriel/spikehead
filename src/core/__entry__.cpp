@@ -6,26 +6,7 @@
 #include <chrono>
 #include <thread>
 
-const char* vertexShaderSrc = R"glsl(
-    #version 330 core
-    layout(location = 0) in vec2 aPos;
-    layout(location = 1) in vec2 aUV;
-
-out vec2 UV;
-
-void main(){
-    UV = aUV;
-    gl_Position = vec4(aPos, 0.0, 1.0);
-}
-)glsl";
-
-const char* fragmentShaderSrc = R"glsl(
-    #version 330 core
-    in vec2 UV;
-    out vec4 FragColor;
-    uniform sampler2D texture1;
-    void main() { FragColor = texture(texture1, UV); }
-)glsl";
+std::vector<Entity> entities;
 
 int main() {
     platform_context_t ctx = platform_init();
@@ -46,43 +27,12 @@ int main() {
         exit(42);
     }
 
-    asset_descriptor_t test_img = lookup_asset("test_img");
+    Entity e;
 
-    std::cout << "test_img error: " << test_img.error << std::endl;
-    std::cout << "test_img type: " << test_img.type << std::endl;
-    std::cout << "test_img path: " << test_img.path << std::endl;
+    e.add_component(COMP_TYPE_SQUARE, NULL);
+    e.add_component(COMP_TYPE_MAT_COLOR, NULL);
 
-    // 4 vertices, each with pos (x,y,z) and normal (nx,ny,nz)
-    float vertices[] = {
-        // positions        // normals
-        0.5f,  0.5f,  1.0f, 1.0f,  // top right
-        -0.5f,  0.5f,  0.0f, 1.0f,  // top left
-        -0.5f, -0.5f,  0.0f, 0.0f,  // bottom left
-        0.5f, -0.5f,  1.0f, 0.0f,  // bottom right
-    };
-
-    // 6 indices for 2 triangles forming the square
-    unsigned int indices[] = {
-        0, 1, 2,
-        0, 3, 2
-    };
-
-    uint8_t texture[4*4] = {
-        255,0,0,255, // top left pixel
-        0,0,0,255, // top right pixel
-        0,0,0,255, // bottom left pixel
-        255,0,0,255, // bottom right pixel
-    };
-
-    renderer_unbatched_object_t obj = create_object_textured(
-        vertices,
-        16,
-        indices,
-        6,
-        create_shader(vertexShaderSrc, fragmentShaderSrc),
-        load_texture(test_img),
-        "texture1"
-    );
+    entities.push_back(e);
     
     while(!platform_should_close(ctx, window)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -92,15 +42,15 @@ int main() {
         double seconds = duration_cast<std::chrono::duration<double>>(duration).count();
 
         float hue = std::fmod(seconds, 3.1415);
-        
+
         float r = fabs(sin(hue));
         float g = fabs(sin(hue + 2.094));
         float b = fabs(sin(hue + 4.188));
-        
+
         renderer_setbgcol(r,g,b);
         renderer_clear();
 
-        renderer_draw_object(obj);
+        renderer_draw(entities);
 
         renderer_swap();
     }

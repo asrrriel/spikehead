@@ -1,6 +1,8 @@
 #pragma once
 #include "platform.h"
 #include <GL/gl.h>
+#include <vector>
+#include "ecs.h"
 
 typedef uintptr_t renderer_shader_t;
 typedef uintptr_t renderer_unbatched_object_t;
@@ -18,14 +20,8 @@ bool renderer_clear();
 renderer_shader_t create_shader(std::string vert, std::string frag);
 texture_t create_texture(void* pixels, int width, int height);
 
-renderer_unbatched_object_t create_object(float* vertices, unsigned int size, unsigned int* indices, unsigned int index_size, renderer_shader_t shader);
-renderer_unbatched_object_t create_object_textured(float* vertices, unsigned int count, unsigned int* indices, unsigned int idx_count, renderer_shader_t shader, texture_t texture,std::string uniform);
-
-void renderer_draw_object(renderer_unbatched_object_t object);
-
-
+void renderer_draw(std::vector<Entity>);
 
 void renderer_swap();
-
 
 void renderer_deinit();
