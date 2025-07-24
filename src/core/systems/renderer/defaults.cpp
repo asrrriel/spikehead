@@ -22,13 +22,39 @@ void main() {
 }
 )";
 
+static std::string texture_vert = R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoords;
+out vec2 TexCoords;
+void main() {
+    TexCoords = aTexCoords;
+    gl_Position = vec4(aPos, 1.0, 1.0);
+}
+)";
+
+static std::string texture_frag = R"(
+#version 330 core
+out vec4 FragColor;
+in vec2 TexCoords;
+uniform sampler2D texture1;
+
+void main() {
+    FragColor = texture(texture1, TexCoords);
+}
+)";
+
 Shader* color_shader = nullptr;
+Shader* texture_shader = nullptr;
 VAO   * square_vao = nullptr;
 IBO   * square_ibo = nullptr;
 
 void init_defaults(){
     //MAT_COLOR
     color_shader = new Shader(color_vert, color_frag);
+
+    //MAT_TEXTURE
+    texture_shader = new Shader(texture_vert, texture_frag);
 
     //SQUARE
     float vertices[] = {

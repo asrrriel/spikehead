@@ -6,7 +6,8 @@
 
 #define COMP_TYPE_TRANSFORM 0
 #define COMP_TYPE_SQUARE    1
-#define COMP_TYPE_MAT_COLOR 1
+#define COMP_TYPE_MAT_COLOR 2
+#define COMP_TYPE_MAT_TEXTURE 3
 
 class Entity {
     void* components[MAX_COMPS];
@@ -18,7 +19,7 @@ public:
     bool add_component(uint16_t type, void* component);
     
     bool has_component(uint16_t type);
-    bool get_component(uint16_t type, void** component);
+    void* get_component(uint16_t type);
     bool remove_component(uint16_t id);
     
 };

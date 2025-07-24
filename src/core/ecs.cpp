@@ -30,14 +30,13 @@ bool Entity::add_component(uint16_t type, void* component) {
     return false;
 }
 
-bool Entity::get_component(uint16_t type, void** component){
+void* Entity::get_component(uint16_t type){
     for (int i = 0; i < MAX_COMPS; i++) {
         if (component_types[i] == type) {
-            *component = components[i];
-            return true;
+            return components[i];
         }
     }
-    return false;
+    return nullptr;
 }
 
 bool Entity::remove_component(uint16_t type) {

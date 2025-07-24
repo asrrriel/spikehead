@@ -7,8 +7,8 @@
 #include "gl_abstraction/vao.h"
 #include "gl_abstraction/ibo.h"
 #include "gl_abstraction/shader.h"
-#include <algorithm>
-#include <cstdint>
+#include "nothings/stb_image.h"
+#include "sys/assets.h"
 #include <iostream>
 #include <sys/types.h>
 #include <vector>
@@ -16,6 +16,7 @@
 platform_gl_context_t gl_context;
 
 extern Shader* color_shader;
+extern Shader* texture_shader;
 extern VAO   * square_vao;
 extern IBO   * square_ibo;
 
@@ -69,10 +70,65 @@ void renderer_deinit(){
     platform_destroy_gl_context(gl_context);
 }
 
+void* renderer_create_color_material(float r, float g, float b){
+    color_material_t* mat = new color_material_t();
+
+    float color[] = {r, g, b};
+
+    mat->color = Vec3f(color);
+
+    return reinterpret_cast<void*>(mat);
+}
+
+void* renderer_create_texture_material(std::string texture){
+    texture_material_t* mat = new texture_material_t();
+
+    asset_descriptor_t asset = lookup_asset(texture);
+
+    if(asset.error){
+        std::cerr << "Failed to find texture '" << texture << "'\n";
+        return nullptr;
+    }
+
+    if(asset.type != ASSET_TYPE_IMAGE){
+        std::cerr << "Asset '" << texture << "' is not a texture\n";
+        return nullptr;
+    }
+
+    stbi_set_flip_vertically_on_load_thread(true);
+    int width, height;
+    unsigned char* data = stbi_load(asset.path.c_str(), &width, &height, NULL, 4);
+
+    if(!data){
+        std::cerr << "Failed to load texture '" << texture << "'\n";
+        return nullptr;
+    }
+
+    mat->texture = new Texture(data, width, height, GL_NEAREST);
+
+    stbi_image_free(data);
+
+    return reinterpret_cast<void*>(mat);
+}
+
 void __render_material(Entity e, VAO* vao, GLuint index_count){
     if(e.has_component(COMP_TYPE_MAT_COLOR)){
+        color_material_t* c = (color_material_t*)e.get_component(COMP_TYPE_MAT_COLOR);
+        if(!c){
+            std::cout << "Invalid color material\n";
+            return;
+        }
         color_shader->Bind();
-        color_shader->SetUniform3f("color", Vec3f(1.0f));
+        color_shader->SetUniform3f("color", c->color);
+    } else if(e.has_component(COMP_TYPE_MAT_TEXTURE)){
+        texture_material_t* t = (texture_material_t*)e.get_component(COMP_TYPE_MAT_TEXTURE);
+        if(!t){
+            std::cout << "Invalid texture material\n";
+            return;
+        }
+        t->texture->Bind(0);
+        texture_shader->Bind();
+        texture_shader->SetUniform1i("texture1", 0);
     } else {
         std::cout << "No material\n";
         return;
@@ -82,7 +138,6 @@ void __render_material(Entity e, VAO* vao, GLuint index_count){
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
     __renderer_print_errors();
     vao->Unbind();
-    color_shader->Unbind();
 }
 
 void renderer_draw(std::vector<Entity> entities){

@@ -102,7 +102,7 @@ if [ "$ACTION" = "build" ] || [ "$ACTION" = "run" ]; then
     echo "]" >> "$CMD_FILE"
 
     echo "Building $OUTFILE..."
-    clang++ "--target=$TARGET" $O_FILES $LDFLAGS -v -o "$OUTFILE"
+    clang++ "--target=$TARGET" $O_FILES $LDFLAGS -o "$OUTFILE"
 fi
 
 if [ "$ACTION" = "run" ]; then

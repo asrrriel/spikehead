@@ -1,3 +1,4 @@
+#include "ecs.h"
 #include "platform.h"
 #include "sys/renderer.h"
 #include "sys/assets.h"
@@ -27,10 +28,17 @@ int main() {
         exit(42);
     }
 
-    Entity e;
+    Entity e; 
 
-    e.add_component(COMP_TYPE_SQUARE, NULL);
-    e.add_component(COMP_TYPE_MAT_COLOR, NULL);
+    if(!e.add_component(COMP_TYPE_SQUARE, NULL)){
+        exit(69);
+    }
+
+    void* mat = renderer_create_texture_material("test_img");
+
+    if(!e.add_component(COMP_TYPE_MAT_TEXTURE, mat)){
+        exit(69);
+    }
 
     entities.push_back(e);
     

@@ -2,14 +2,16 @@
 #include "platform.h"
 #include <GL/gl.h>
 #include <vector>
+#include "math/vector.h"
+#include "gl_abstraction/texture.h"
 #include "ecs.h"
 
-typedef uintptr_t renderer_shader_t;
-typedef uintptr_t renderer_unbatched_object_t;
-struct texture_t {
-    GLuint id;
-    int width;
-    int height;
+struct color_material_t {
+    Vec3f color;
+};
+
+struct texture_material_t {
+    Texture* texture;
 };
 
 bool renderer_init(platform_context_t context, platform_window_t window);
@@ -17,8 +19,8 @@ bool renderer_init(platform_context_t context, platform_window_t window);
 bool renderer_setbgcol(float r, float g, float b);
 bool renderer_clear();
 
-renderer_shader_t create_shader(std::string vert, std::string frag);
-texture_t create_texture(void* pixels, int width, int height);
+void* renderer_create_color_material(float r, float g, float b);
+void* renderer_create_texture_material(std::string texture);
 
 void renderer_draw(std::vector<Entity>);
 
