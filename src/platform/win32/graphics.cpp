@@ -19,6 +19,8 @@ struct Win32Context {
 struct Win32Window {
     HWND hwnd;
     bool shouldClose;
+    void (*resize_callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer);
+    uintptr_t resize_private_pointer;
 
     Win32Window(HWND hwnd_, bool shouldClose_)
         : hwnd(hwnd_), shouldClose(shouldClose_) {}
@@ -42,6 +44,10 @@ LRESULT CALLBACK PlatformWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
+        case WM_SIZE:
+            if (win && win->resize_callback) {
+                win->resize_callback(reinterpret_cast<platform_window_t>(win), LOWORD(lParam), HIWORD(lParam), win->resize_private_pointer);
+            }
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
@@ -140,6 +146,12 @@ void platform_destroy_window(platform_context_t context, platform_window_t windo
 
     DestroyWindow(win->hwnd);
     delete win;
+}
+
+void platform_register_resize_callback(platform_context_t context, platform_window_t window,uintptr_t private_pointer, void (*callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer)){
+    Win32Window* win = reinterpret_cast<Win32Window*>(window);
+    win->resize_callback = callback;
+    win->resize_private_pointer = private_pointer;
 }
 
 platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window){

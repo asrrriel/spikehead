@@ -22,6 +22,8 @@ bool platform_set_title(platform_context_t context, platform_window_t window, st
 void platform_show_window(platform_context_t context, platform_window_t window);
 void platform_destroy_window(platform_context_t context, platform_window_t window);
 
+void platform_register_resize_callback(platform_context_t context, platform_window_t window,uintptr_t private_pointer, void (*callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer));
+
 // OpenGL Stuff
 typedef std::uintptr_t platform_gl_context_t;  
 

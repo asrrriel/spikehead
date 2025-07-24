@@ -1,3 +1,4 @@
+#include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <GL/glx.h>
@@ -6,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <sys/types.h>
 #include "platform.h"
 
 struct platform_context {
@@ -24,6 +26,14 @@ struct glx_context {
 
     glx_context(GLXContext _gl_context, ::Display* _x_display, ::Window _window) 
     : gl_context(_gl_context), x_display(_x_display), window(_window) {}
+};
+
+struct x_window_t {
+    Window window;
+    void (*resize_callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer);
+    uintptr_t resize_private_pointer;
+
+    x_window_t(Window _window) : window(_window) {}
 };
 
 platform_context_t platform_init() {
@@ -79,19 +89,22 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
 
     XSelectInput(ctx->display, window, ExposureMask | KeyPressMask | StructureNotifyMask);
     XSetWMProtocols(ctx->display, window, &ctx->wm_delete_window, 1);
-    return reinterpret_cast<platform_window_t>(window);
+
+    x_window_t* x_window = new x_window_t(window);
+
+    return reinterpret_cast<platform_window_t>(x_window);
 }
 
 bool platform_set_title(platform_context_t context, platform_window_t window, std::string title) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    ::Window win = reinterpret_cast<::Window>(window);
-    XStoreName(ctx->display, win, title.c_str());
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+    XStoreName(ctx->display, win->window, title.c_str());
     return true;
 }
 
 bool platform_should_close(platform_context_t context, platform_window_t window) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    ::Window win = reinterpret_cast<::Window>(window);
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
 
     bool toret = false;
 
@@ -106,6 +119,13 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
                 break;
             case DestroyNotify:
                 toret = true;
+            case ConfigureNotify:
+                if(win->resize_callback) {
+                    win->resize_callback(window, event.xconfigure.width, event.xconfigure.height, win->resize_private_pointer);
+                }
+                break;
+            default:
+                break;
         }
 
     }
@@ -114,18 +134,26 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
 
 void platform_show_window(platform_context_t context, platform_window_t window) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    XMapWindow(ctx->display, reinterpret_cast<::Window>(window));
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+    XMapWindow(ctx->display, win->window);
     XFlush(ctx->display);
+}
+
+void platform_register_resize_callback(platform_context_t context, platform_window_t window,uintptr_t private_pointer, void (*callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer)){
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+    win->resize_callback = callback;
+    win->resize_private_pointer = private_pointer;
 }
 
 void platform_destroy_window(platform_context_t context, platform_window_t window) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    XDestroyWindow(ctx->display, reinterpret_cast<::Window>(window));
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+    XDestroyWindow(ctx->display, win->window);
 }
 
 platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window) {
     platform_context* pctx = reinterpret_cast<platform_context*>(context);
-    Window win = reinterpret_cast<Window>(window);
+    x_window_t* xwin = reinterpret_cast<x_window_t*>(window);
 
     typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
@@ -151,7 +179,7 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
         return 0;
     }
 
-    glx_context* ctx = new glx_context(glc, pctx->display, win);
+    glx_context* ctx = new glx_context(glc, pctx->display, xwin->window);
     return reinterpret_cast<platform_gl_context_t>(ctx);
 }
 

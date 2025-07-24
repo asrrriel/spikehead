@@ -9,6 +9,10 @@
 
 std::vector<Entity> entities;
 
+void resize_callback(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer){
+    glViewport(0, 0, width, height);
+}
+
 int main() {
     platform_context_t ctx = platform_init();
     if (!ctx) {
@@ -19,6 +23,7 @@ int main() {
     platform_window_t window = platform_create_window(ctx, screen, 800, 600);
     platform_set_title(ctx, window, "Hello " PLATFORM "!");
     platform_show_window(ctx, window);
+    platform_register_resize_callback(ctx, window, 0, resize_callback);
 
     if(!renderer_init(ctx, window)){
         exit(69);
