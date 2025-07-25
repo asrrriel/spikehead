@@ -46,13 +46,17 @@ bool renderer_init(platform_context_t context, platform_window_t window){
     std::cout << "OpenGL version: " <<  major << '.' << minor << '\n';
     std::cout << "OpenGL vendor: " << vendor << '\n'; 
 
-    __renderer_print_errors();
     init_defaults();
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    __renderer_print_errors();
 
     return true;
 }
-bool renderer_setbgcol(float r, float g, float b){
-    glClearColor(r, g, b, 1.0f);
+bool renderer_setbgcol(float r, float g, float b, float a){
+    glClearColor(r, g, b, a);
     __renderer_print_errors();
     return true;
 }

@@ -16,7 +16,7 @@ struct texture_material_t {
 
 bool renderer_init(platform_context_t context, platform_window_t window);
 
-bool renderer_setbgcol(float r, float g, float b);
+bool renderer_setbgcol(float r, float g, float b, float a);
 bool renderer_clear();
 
 void* renderer_create_color_material(float r, float g, float b);

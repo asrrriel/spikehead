@@ -32,6 +32,7 @@ struct x_window_t {
     Window window;
     void (*resize_callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer);
     uintptr_t resize_private_pointer;
+    size_t x,y;
 
     x_window_t(Window _window) : window(_window) {}
 };
@@ -62,7 +63,31 @@ platform_context_t platform_init() {
 
     int fbcount;
     GLXFBConfig* fbc = glXChooseFBConfig(display, DefaultScreen(display), attribs, &fbcount);
-    GLXFBConfig bestFbc = fbc[0]; // pick one
+    GLXFBConfig bestFbc = nullptr;
+    XVisualInfo* vi = nullptr;
+
+    for (int i = 0; i < fbcount; ++i) {
+        XVisualInfo* candidateVi = glXGetVisualFromFBConfig(display, fbc[i]);
+        if (!candidateVi)
+            continue;
+
+        int depth = candidateVi->depth;
+        int alphaBits;
+        glXGetFBConfigAttrib(display, fbc[i], GLX_ALPHA_SIZE, &alphaBits);
+
+        if (depth == 32 && alphaBits >= 8) {
+            bestFbc = fbc[i];
+            vi = candidateVi;
+            break;
+        }
+
+        XFree(candidateVi);
+    }
+
+    if (!bestFbc || !vi) {
+        std::cerr << "[WARNING] No suitable framebuffer config with alpha and 32-bit depth found(No Window Transparency)\n";
+    }
+
     XFree(fbc);
 
     platform_context* ctx = new platform_context(display, wm_delete_window,bestFbc);
@@ -80,15 +105,41 @@ platform_screen_t platform_get_primary_screen(platform_context_t context) {
     return reinterpret_cast<platform_screen_t>(DefaultScreenOfDisplay(ctx->display));
 }
 
-platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height) {
+platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     Screen* scr = reinterpret_cast<Screen*>(screen);
 
-    Window window = XCreateSimpleWindow(ctx->display, RootWindowOfScreen(scr), 0, 0, width, height, 0,
-                                        BlackPixelOfScreen(scr), BlackPixelOfScreen(scr));
+    XVisualInfo* vi = glXGetVisualFromFBConfig(ctx->display, ctx->fbc);
+
+    Colormap cmap = XCreateColormap(ctx->display, RootWindowOfScreen(scr), vi->visual, AllocNone);
+
+    XSetWindowAttributes swa;
+    swa.colormap = cmap;
+    swa.background_pixmap = None;
+    swa.border_pixel = 0;
+    swa.event_mask = ExposureMask | KeyPressMask | StructureNotifyMask;
+
+    Window window = XCreateWindow(
+        ctx->display, 
+        RootWindowOfScreen(scr)
+        , 0, 0, width, height, 0,
+        vi->depth,
+        InputOutput,
+        vi->visual,
+        CWBorderPixel | CWColormap | CWEventMask,
+        &swa
+    );
 
     XSelectInput(ctx->display, window, ExposureMask | KeyPressMask | StructureNotifyMask);
     XSetWMProtocols(ctx->display, window, &ctx->wm_delete_window, 1);
+
+    if(borderless) {
+        Atom wm_type_atom = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE", False);
+        Atom wm_type_value = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE_DOCK", False); // or UTILITY
+        
+        XChangeProperty(ctx->display, window, wm_type_atom, XA_ATOM, 32, PropModeReplace,
+                        (unsigned char *)&wm_type_value, 1);
+    }
 
     x_window_t* x_window = new x_window_t(window);
 
@@ -99,6 +150,29 @@ bool platform_set_title(platform_context_t context, platform_window_t window, st
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     x_window_t* win = reinterpret_cast<x_window_t*>(window);
     XStoreName(ctx->display, win->window, title.c_str());
+    return true;
+}
+
+bool platform_set_position(platform_context_t context, platform_window_t window, std::size_t x, std::size_t y){
+    platform_context* ctx = reinterpret_cast<platform_context*>(context);
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+
+    
+    return XMoveWindow(ctx->display, win->window, x, y);
+}
+bool platform_set_size(platform_context_t context, platform_window_t window, std::size_t width, std::size_t height){
+    platform_context* ctx = reinterpret_cast<platform_context*>(context);
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+
+    return XResizeWindow(ctx->display, win->window, width, height);
+}
+bool platform_get_position(platform_context_t context, platform_window_t window, std::size_t* x, std::size_t* y){
+    platform_context* ctx = reinterpret_cast<platform_context*>(context);
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+
+    *x = win->x;
+    *y = win->y;
+
     return true;
 }
 
@@ -123,6 +197,8 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
                 if(win->resize_callback) {
                     win->resize_callback(window, event.xconfigure.width, event.xconfigure.height, win->resize_private_pointer);
                 }
+                win->x = event.xconfigure.x;
+                win->y = event.xconfigure.y;
                 break;
             default:
                 break;

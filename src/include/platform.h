@@ -14,11 +14,17 @@ void platform_deinit(platform_context_t context);
 
 platform_screen_t platform_get_primary_screen(platform_context_t context);
 
-platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height);
+platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless);
 
 bool platform_should_close(platform_context_t context, platform_window_t window);
 
 bool platform_set_title(platform_context_t context, platform_window_t window, std::string title);
+
+bool platform_set_position(platform_context_t context, platform_window_t window, std::size_t x, std::size_t y);
+bool platform_set_size(platform_context_t context, platform_window_t window, std::size_t width, std::size_t height);
+
+bool platform_get_position(platform_context_t context, platform_window_t window, std::size_t* x, std::size_t* y);
+
 void platform_show_window(platform_context_t context, platform_window_t window);
 void platform_destroy_window(platform_context_t context, platform_window_t window);
 

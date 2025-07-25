@@ -20,7 +20,7 @@ int main() {
     }
 
     platform_screen_t screen = platform_get_primary_screen(ctx);
-    platform_window_t window = platform_create_window(ctx, screen, 800, 600);
+    platform_window_t window = platform_create_window(ctx, screen, 800, 600, true);
     platform_set_title(ctx, window, "Hello " PLATFORM "!");
     platform_show_window(ctx, window);
     platform_register_resize_callback(ctx, window, 0, resize_callback);
@@ -48,24 +48,17 @@ int main() {
     entities.push_back(e);
     
     while(!platform_should_close(ctx, window)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        auto now = std::chrono::steady_clock::now();
-        auto duration = now.time_since_epoch();
-
-        double seconds = duration_cast<std::chrono::duration<double>>(duration).count();
-
-        float hue = std::fmod(seconds, 3.1415);
-
-        float r = fabs(sin(hue));
-        float g = fabs(sin(hue + 2.094));
-        float b = fabs(sin(hue + 4.188));
-
-        renderer_setbgcol(r,g,b);
+        renderer_setbgcol(0,0,0,0);
         renderer_clear();
 
         renderer_draw(entities);
 
         renderer_swap();
+
+        size_t x,y;
+        platform_get_position(ctx, window, &x, &y);
+        platform_set_position(ctx, window, x+1, y);
+
     }
 
     renderer_deinit();
