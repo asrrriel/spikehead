@@ -31,30 +31,34 @@ platform_gl_context_t main_context = 0;
 
 platform_gl_context_t renderer_init(platform_context_t context, platform_window_t window){
     platform_gl_context_t gl_context = 0;
+    bool first_time = false;
 
 
     if(!main_context){
         gl_context = platform_create_gl_context(context, window);
         main_context = gl_context;
+        first_time = true;
     } else{
         gl_context = platform_create_gl_context(context, window, main_context);
     }
 
     platform_make_context_current(gl_context);
 
-    if(!gladLoadGL()){
-        std::cerr << "Failed to initialize GLAD\n";
-        return 0;
+    if(first_time){
+        if(!gladLoadGL()){
+            std::cerr << "Failed to initialize GLAD\n";
+            return 0;
+        }
+       
+        const char* vendor = (const char*)glGetString(GL_VERSION);
+        GLint major, minor;
+        glGetIntegerv(GL_MAJOR_VERSION, &major);
+        glGetIntegerv(GL_MINOR_VERSION, &minor);
+    
+        std::cout << "OpenGL version: " <<  major << '.' << minor << '\n';
+        std::cout << "OpenGL vendor: " << vendor << '\n'; 
+    
     }
-   
-    const char* vendor = (const char*)glGetString(GL_VERSION);
-    GLint major, minor;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-    std::cout << "OpenGL version: " <<  major << '.' << minor << '\n';
-    std::cout << "OpenGL vendor: " << vendor << '\n'; 
-
     init_defaults();
 
     glEnable(GL_BLEND);

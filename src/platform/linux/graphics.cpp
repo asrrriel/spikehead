@@ -34,7 +34,7 @@ struct x_window_t {
     Window window;
     void (*resize_callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer);
     uintptr_t resize_private_pointer;
-    size_t x,y;
+    size_t x,y,width, height;
 
     x_window_t(Window _window) : window(_window) {}
 };
@@ -178,6 +178,17 @@ bool platform_get_position(platform_context_t context, platform_window_t window,
     return true;
 }
 
+bool platform_get_size(platform_context_t context, platform_window_t window, std::size_t* width, std::size_t* height){
+    platform_context* ctx = reinterpret_cast<platform_context*>(context);
+    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+
+    *width = win->width;
+    *height = win->height;
+
+    return true;
+}
+
+
 bool platform_should_close(platform_context_t context, platform_window_t window) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     x_window_t* win = reinterpret_cast<x_window_t*>(window);
@@ -200,6 +211,8 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
                 if(win->resize_callback) {
                     win->resize_callback(window, event.xconfigure.width, event.xconfigure.height, win->resize_private_pointer);
                 }
+                win->width = event.xconfigure.width;
+                win->height = event.xconfigure.height;
                 win->x = event.xconfigure.x;
                 win->y = event.xconfigure.y;
                 break;
@@ -258,6 +271,7 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
     GLXContext share = shared_ctx ? shared_ctx->gl_context : None;
     GLXContext glc = glXCreateContextAttribsARB(pctx->display,pctx->fbc, share, True, attribs);
     
+    std::cout << "GLC: " << glc << std::endl;
 
     if (glc == NULL) {
         std::cerr << "Failed to create GLX context\n";

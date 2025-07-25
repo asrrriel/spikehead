@@ -3,6 +3,8 @@
 #include "sys/renderer.h"
 #include "sys/assets.h"
 #include "math.h"
+#include <GL/gl.h>
+#include <cstddef>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -10,10 +12,13 @@
 struct engine_window_t {
     platform_window_t window;
     platform_gl_context_t gl_context;
+    size_t width = 0, height = 0;
 
-    engine_window_t(platform_window_t _window, platform_gl_context_t _gl_context){
+    engine_window_t(platform_window_t _window, platform_gl_context_t _gl_context, size_t _width, size_t _height){
         window = _window;
         gl_context = _gl_context;
+        width = _width;
+        height = _height;
     }
 };
 
@@ -21,7 +26,8 @@ std::vector<engine_window_t> windows;
 std::vector<Entity> entities;
 
 void resize_callback(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer){
-    glViewport(0, 0, width, height);
+    windows[private_pointer].width = width;
+    windows[private_pointer].height = height;
 }
 
 int main() {
@@ -54,15 +60,15 @@ int main() {
 
     platform_screen_t screen = platform_get_primary_screen(ctx);
 
-    for(auto window : manifest.windows){
-        platform_window_t p_window = platform_create_window(ctx, screen, window.width, window.height, false);
-        platform_set_title(ctx, p_window, window.name);
+    for(size_t  i = 0; i < manifest.windows.size(); i++){
+        platform_window_t p_window = platform_create_window(ctx, screen, manifest.windows[i].width, manifest.windows[i].height, false);
+        platform_set_title(ctx, p_window, manifest.windows[i].name);
         platform_show_window(ctx, p_window);
-        platform_register_resize_callback(ctx, p_window, 0, resize_callback);
+        platform_register_resize_callback(ctx, p_window, i, resize_callback);
     
         platform_gl_context_t gl_context = renderer_init(ctx, p_window);
 
-        windows.push_back(engine_window_t(p_window, gl_context));
+        windows.push_back(engine_window_t(p_window, gl_context, manifest.windows[i].width, manifest.windows[i].height));
     }
 
     Entity e; 
@@ -82,6 +88,7 @@ int main() {
     while(windows.size() != 0){
         for (size_t i = 0; i < windows.size(); ){
             platform_make_context_current(windows[i].gl_context);
+            glViewport(0, 0, windows[i].width, windows[i].height);
             if(platform_should_close(ctx, windows[i].window)){
                 platform_destroy_gl_context(windows[i].gl_context);
                 platform_destroy_window(ctx, windows[i].window);

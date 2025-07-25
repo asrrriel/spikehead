@@ -158,6 +158,15 @@ bool platform_get_position(platform_context_t context, platform_window_t window,
     return true;
 }
 
+bool platform_get_size(platform_context_t context, platform_window_t window, std::size_t* width, std::size_t* height){
+    Win32Window* win = reinterpret_cast<Win32Window*>(window);
+    if(!win || !win->hwnd) return false;
+    *width = win->width;
+    *height = win->height;
+
+    return true;
+}
+
 void platform_show_window(platform_context_t context, platform_window_t window) {
     Win32Window* win = reinterpret_cast<Win32Window*>(window);
     if (!win || !win->hwnd) return;
