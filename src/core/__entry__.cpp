@@ -20,7 +20,7 @@ int main() {
     }
 
     #ifdef _WIN32
-        std::cout << "[WARNING] Windows composition is not supported on Windows" << std::endl;
+        std::cout << "[WARNING] Window composition is not supported on Windows" << std::endl;
     #endif
 
     platform_screen_t screen = platform_get_primary_screen(ctx);
