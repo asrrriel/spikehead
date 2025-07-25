@@ -21,9 +21,12 @@ struct Win32Window {
     bool shouldClose;
     void (*resize_callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer);
     uintptr_t resize_private_pointer;
+    size_t x,y,width, height;
 
-    Win32Window(HWND hwnd_, bool shouldClose_)
-        : hwnd(hwnd_), shouldClose(shouldClose_) {}
+    Win32Window(HWND hwnd_, bool shouldClose_, size_t width_, size_t height_)
+        : hwnd(hwnd_), shouldClose(shouldClose_), width(width_), height(height_) {
+            x = y = 0;
+        }
 };
 
 struct Win32GlContext {
@@ -48,6 +51,13 @@ LRESULT CALLBACK PlatformWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
             if (win && win->resize_callback) {
                 win->resize_callback(reinterpret_cast<platform_window_t>(win), LOWORD(lParam), HIWORD(lParam), win->resize_private_pointer);
             }
+            win->width = LOWORD(lParam);
+            win->height = HIWORD(lParam);
+            return 0;
+        case WM_MOVE:
+            win->x = LOWORD(lParam);
+            win->y = HIWORD(lParam);
+            return 0;
         default:
             return DefWindowProc(hwnd, msg, wParam, lParam);
     }
@@ -84,7 +94,7 @@ platform_screen_t platform_get_primary_screen(platform_context_t context) {
     return 1;
 }
 
-platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height) {
+platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless) {
     Win32Context* ctx = reinterpret_cast<Win32Context*>(context);
     if (!ctx) return 0;
 
@@ -97,7 +107,7 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
         0,
         MAKEINTATOM(ctx->classAtom),
         "Untitled Window",
-        WS_OVERLAPPEDWINDOW,
+        (borderless ? WS_POPUP : WS_OVERLAPPEDWINDOW),
         CW_USEDEFAULT, CW_USEDEFAULT,
         new_width, new_height,
         NULL,
@@ -106,9 +116,8 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
         NULL
     );
     if (!hwnd) return 0;
-
     
-    Win32Window* win = new Win32Window(hwnd, false);
+    Win32Window* win = new Win32Window(hwnd, false, width, height);
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(win));
     return reinterpret_cast<platform_window_t>(win);
 }
@@ -130,6 +139,23 @@ bool platform_set_title(platform_context_t context, platform_window_t window, st
     if (!win || !win->hwnd) return false;
 
     return SetWindowTextA(win->hwnd, title.c_str()) != 0;
+}
+
+bool platform_set_position(platform_context_t context, platform_window_t window, std::size_t x, std::size_t y){
+    Win32Window* win = reinterpret_cast<Win32Window*>(window);
+    return SetWindowPos(win->hwnd, NULL, x, y, win->width, win->height, SWP_NOZORDER | SWP_NOACTIVATE);
+}
+bool platform_set_size(platform_context_t context, platform_window_t window, std::size_t width, std::size_t height){
+    Win32Window* win = reinterpret_cast<Win32Window*>(window);
+    return SetWindowPos(win->hwnd, NULL, win->x, win->y, width, height, SWP_NOZORDER | SWP_NOACTIVATE);
+}
+bool platform_get_position(platform_context_t context, platform_window_t window, std::size_t* x, std::size_t* y){
+    Win32Window* win = reinterpret_cast<Win32Window*>(window);
+    if(!win || !win->hwnd) return false;
+    *x = win->x;
+    *y = win->y;
+
+    return true;
 }
 
 void platform_show_window(platform_context_t context, platform_window_t window) {
@@ -234,6 +260,6 @@ void platform_destroy_gl_context(platform_gl_context_t gl_context){
     Win32GlContext* ctx = reinterpret_cast<Win32GlContext*>(gl_context);
     wglMakeCurrent(nullptr, nullptr);
     wglDeleteContext(ctx->glc);
-    DeleteDC(ctx->dc);
+    ReleaseDC(WindowFromDC(ctx->dc), ctx->dc);
     delete ctx;
 }

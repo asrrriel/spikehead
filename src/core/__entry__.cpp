@@ -19,6 +19,10 @@ int main() {
         return 1;
     }
 
+    #ifdef _WIN32
+        std::cout << "[WARNING] Windows composition is not supported on Windows" << std::endl;
+    #endif
+
     platform_screen_t screen = platform_get_primary_screen(ctx);
     platform_window_t window = platform_create_window(ctx, screen, 800, 600, true);
     platform_set_title(ctx, window, "Hello " PLATFORM "!");
@@ -48,6 +52,7 @@ int main() {
     entities.push_back(e);
     
     while(!platform_should_close(ctx, window)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(33));
         renderer_setbgcol(0,0,0,0);
         renderer_clear();
 
