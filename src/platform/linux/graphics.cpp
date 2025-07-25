@@ -14,9 +14,11 @@ struct platform_context {
     Display* display;
     Atom wm_delete_window;
     GLXFBConfig fbc;
+    XVisualInfo* vi;
+    Colormap cmap;
 
-    platform_context(Display* _display, Atom _wm_delete_window, GLXFBConfig _fbc) 
-    : display(_display), wm_delete_window(_wm_delete_window), fbc(_fbc) {}
+    platform_context(Display* _display, Atom _wm_delete_window, GLXFBConfig _fbc, XVisualInfo* _vi, Colormap _cmap) 
+    : display(_display), wm_delete_window(_wm_delete_window), fbc(_fbc), vi(_vi), cmap(_cmap) {}
 };
 
 struct glx_context {
@@ -90,13 +92,16 @@ platform_context_t platform_init() {
 
     XFree(fbc);
 
-    platform_context* ctx = new platform_context(display, wm_delete_window,bestFbc);
+    Colormap cmap = XCreateColormap(display, RootWindowOfScreen(DefaultScreenOfDisplay(display)),vi->visual, AllocNone);
+
+    platform_context* ctx = new platform_context(display, wm_delete_window,bestFbc, vi,cmap);
     return reinterpret_cast<platform_context_t>(ctx);
 }
 
 void platform_deinit(platform_context_t context) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     XCloseDisplay(ctx->display);
+    if(ctx->vi) XFree(ctx->vi);
     delete ctx;
 }
 
@@ -109,12 +114,8 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     Screen* scr = reinterpret_cast<Screen*>(screen);
 
-    XVisualInfo* vi = glXGetVisualFromFBConfig(ctx->display, ctx->fbc);
-
-    Colormap cmap = XCreateColormap(ctx->display, RootWindowOfScreen(scr), vi->visual, AllocNone);
-
     XSetWindowAttributes swa;
-    swa.colormap = cmap;
+    swa.colormap = ctx->cmap;
     swa.background_pixmap = None;
     swa.border_pixel = 0;
     swa.event_mask = ExposureMask | KeyPressMask | StructureNotifyMask;
@@ -123,9 +124,9 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
         ctx->display, 
         RootWindowOfScreen(scr)
         , 0, 0, width, height, 0,
-        vi->depth,
+        ctx->vi->depth,
         InputOutput,
-        vi->visual,
+        ctx->vi->visual,
         CWBorderPixel | CWColormap | CWEventMask,
         &swa
     );
@@ -135,7 +136,7 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
 
     if(borderless) {
         Atom wm_type_atom = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE", False);
-        Atom wm_type_value = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE_DOCK", False); // or UTILITY
+        Atom wm_type_value = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE_UTILITY", False);
         
         XChangeProperty(ctx->display, window, wm_type_atom, XA_ATOM, 32, PropModeReplace,
                         (unsigned char *)&wm_type_value, 1);
@@ -150,6 +151,7 @@ bool platform_set_title(platform_context_t context, platform_window_t window, st
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     x_window_t* win = reinterpret_cast<x_window_t*>(window);
     XStoreName(ctx->display, win->window, title.c_str());
+    XFlush(ctx->display);
     return true;
 }
 
@@ -193,6 +195,7 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
                 break;
             case DestroyNotify:
                 toret = true;
+                break;
             case ConfigureNotify:
                 if(win->resize_callback) {
                     win->resize_callback(window, event.xconfigure.width, event.xconfigure.height, win->resize_private_pointer);
@@ -225,11 +228,15 @@ void platform_destroy_window(platform_context_t context, platform_window_t windo
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     x_window_t* win = reinterpret_cast<x_window_t*>(window);
     XDestroyWindow(ctx->display, win->window);
+    delete win;
 }
 
-platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window) {
+platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window, platform_gl_context_t shares_with) {
     platform_context* pctx = reinterpret_cast<platform_context*>(context);
     x_window_t* xwin = reinterpret_cast<x_window_t*>(window);
+
+    glx_context* shared_ctx = reinterpret_cast<glx_context*>(shares_with);
+
 
     typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
@@ -248,7 +255,9 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
         None
     };
 
-    GLXContext glc = glXCreateContextAttribsARB(pctx->display,pctx->fbc, 0, True, attribs);
+    GLXContext share = shared_ctx ? shared_ctx->gl_context : None;
+    GLXContext glc = glXCreateContextAttribsARB(pctx->display,pctx->fbc, share, True, attribs);
+    
 
     if (glc == NULL) {
         std::cerr << "Failed to create GLX context\n";
@@ -259,8 +268,11 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
     return reinterpret_cast<platform_gl_context_t>(ctx);
 }
 
+platform_gl_context_t current_context = 0;
+
 void platform_make_context_current(platform_gl_context_t gl_context) {
     glx_context* ctx = reinterpret_cast<glx_context*>(gl_context);
+    current_context = gl_context;
     if(!glXMakeCurrent(ctx->x_display, ctx->window, ctx->gl_context)) {
         std::cerr << "Failed to make GLX context current\n";
     }
@@ -274,4 +286,9 @@ void platform_swap_buffers(platform_gl_context_t gl_context) {
 void platform_destroy_gl_context(platform_gl_context_t gl_context) {
     glx_context* ctx = reinterpret_cast<glx_context*>(gl_context);
     glXDestroyContext(ctx->x_display, ctx->gl_context);
+    delete ctx;
+}
+
+platform_gl_context_t platform_get_current_gl_context(){
+    return current_context;
 }

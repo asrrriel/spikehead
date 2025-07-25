@@ -180,9 +180,11 @@ void platform_register_resize_callback(platform_context_t context, platform_wind
     win->resize_private_pointer = private_pointer;
 }
 
-platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window){
+platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window, platform_gl_context_t shares_with) {
     Win32Context* ctx = reinterpret_cast<Win32Context*>(context);
     Win32Window* win = reinterpret_cast<Win32Window*>(window);
+
+    Win32GlContext* sharedCtx = reinterpret_cast<Win32GlContext*>(shares_with);
 
     HDC dc = GetDC(win->hwnd);
 
@@ -240,12 +242,26 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
         ReleaseDC(win->hwnd, dc);
         return 0;
     }
+    if(shares_with != 0){
+        if (!wglShareLists(sharedCtx->glc, glc)) {
+            std::cerr << "[FATAL] Failed to share GL contexts\n";
+            wglDeleteContext(glc);
+            ReleaseDC(win->hwnd, dc);
+            return 0;
+        }
+    }
 
     Win32GlContext* glctx = new Win32GlContext(dc,glc);
     return reinterpret_cast<platform_gl_context_t>(glctx);
 }
+
+platform_gl_context_t current_context;
+
 void platform_make_context_current(platform_gl_context_t gl_context){
     Win32GlContext* ctx = reinterpret_cast<Win32GlContext*>(gl_context);
+
+    current_context = gl_context;
+
     if(!wglMakeCurrent(ctx->dc, ctx->glc)){
         std::cerr << "Failed to make GL context current\n";
     }
@@ -262,4 +278,8 @@ void platform_destroy_gl_context(platform_gl_context_t gl_context){
     wglDeleteContext(ctx->glc);
     ReleaseDC(WindowFromDC(ctx->dc), ctx->dc);
     delete ctx;
+}
+
+platform_gl_context_t platform_get_current_gl_context(){
+    return current_context;
 }

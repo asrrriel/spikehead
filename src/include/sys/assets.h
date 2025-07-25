@@ -4,6 +4,7 @@
 #include "renderer.h"
 
 struct asset_pack_location_t {
+    bool error;
     bool in_memory;
     union{
         std::string path;
@@ -11,7 +12,7 @@ struct asset_pack_location_t {
     };
 
 
-    asset_pack_location_t() : in_memory(false), data(nullptr) {}
+    asset_pack_location_t() : error(true), in_memory(false), data(nullptr) {}
 
     // Destructor: destroy active member if needed
     ~asset_pack_location_t() {
@@ -92,6 +93,27 @@ struct asset_descriptor_t {
     std::string path;
 };
 
+struct project_window_t {
+    int width;
+    int height;
+    std::string name;
+};
+
+struct project_info_t {
+    std::string name;
+    std::string author;
+    std::string version;
+};
+
+struct project_manifest_t {
+    bool error;
+    project_info_t info;
+    std::vector<project_window_t> windows;
+
+    project_manifest_t() : error(true) {}
+};
+
 asset_pack_location_t find_asset_pack();
 bool load_asset_pack(asset_pack_location_t pack);
+project_manifest_t get_project_manifest();
 asset_descriptor_t lookup_asset(std::string intern_id);

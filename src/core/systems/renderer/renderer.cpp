@@ -13,8 +13,6 @@
 #include <sys/types.h>
 #include <vector>
 
-platform_gl_context_t gl_context;
-
 extern Shader* color_shader;
 extern Shader* texture_shader;
 extern VAO   * square_vao;
@@ -29,15 +27,26 @@ void __renderer_print_errors(){
     }
 }
 
-bool renderer_init(platform_context_t context, platform_window_t window){
-    gl_context = platform_create_gl_context(context, window);
+platform_gl_context_t main_context = 0;
+
+platform_gl_context_t renderer_init(platform_context_t context, platform_window_t window){
+    platform_gl_context_t gl_context = 0;
+
+
+    if(!main_context){
+        gl_context = platform_create_gl_context(context, window);
+        main_context = gl_context;
+    } else{
+        gl_context = platform_create_gl_context(context, window, main_context);
+    }
+
     platform_make_context_current(gl_context);
 
     if(!gladLoadGL()){
         std::cerr << "Failed to initialize GLAD\n";
-        return false;
+        return 0;
     }
-
+   
     const char* vendor = (const char*)glGetString(GL_VERSION);
     GLint major, minor;
     glGetIntegerv(GL_MAJOR_VERSION, &major);
@@ -47,13 +56,13 @@ bool renderer_init(platform_context_t context, platform_window_t window){
     std::cout << "OpenGL vendor: " << vendor << '\n'; 
 
     init_defaults();
-    
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
     __renderer_print_errors();
 
-    return true;
+    return gl_context;
 }
 bool renderer_setbgcol(float r, float g, float b, float a){
     glClearColor(r, g, b, a);
@@ -66,13 +75,6 @@ bool renderer_clear(){
     return true;
 }
 
-void renderer_swap(){
-    platform_swap_buffers(gl_context);
-}
-
-void renderer_deinit(){
-    platform_destroy_gl_context(gl_context);
-}
 
 void* renderer_create_color_material(float r, float g, float b){
     color_material_t* mat = new color_material_t();
@@ -86,6 +88,9 @@ void* renderer_create_color_material(float r, float g, float b){
 
 void* renderer_create_texture_material(std::string texture){
     texture_material_t* mat = new texture_material_t();
+
+    platform_gl_context_t gl_context = platform_get_current_gl_context();
+    platform_make_context_current(main_context);
 
     asset_descriptor_t asset = lookup_asset(texture);
 
@@ -111,6 +116,8 @@ void* renderer_create_texture_material(std::string texture){
     mat->texture = new Texture(data, width, height, GL_NEAREST);
 
     stbi_image_free(data);
+
+    platform_make_context_current(gl_context);
 
     return reinterpret_cast<void*>(mat);
 }

@@ -1,0 +1,20 @@
+{
+    "runtime-version": "unreleased",
+    "project-info" : {
+        "project-version": "unreleased", 
+        "project-name": "Test Project", 
+        "project-author": "Test Author"
+    },
+    "initial-windows": [
+        {
+            "width": 800,
+            "height": 600,
+            "name": "Test window A!"
+        },
+        {
+            "width": 800,
+            "height": 600,
+            "name": "Test window B!"
+        }
+    ]
+}

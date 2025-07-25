@@ -33,7 +33,8 @@ void platform_register_resize_callback(platform_context_t context, platform_wind
 // OpenGL Stuff
 typedef std::uintptr_t platform_gl_context_t;  
 
-platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window);
+platform_gl_context_t platform_create_gl_context(platform_context_t context, platform_window_t window, platform_gl_context_t shares_with = 0);
 void platform_make_context_current(platform_gl_context_t gl_context);
 void platform_swap_buffers(platform_gl_context_t gl_context);
 void platform_destroy_gl_context(platform_gl_context_t gl_context);
+platform_gl_context_t platform_get_current_gl_context();

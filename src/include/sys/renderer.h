@@ -14,7 +14,7 @@ struct texture_material_t {
     Texture* texture;
 };
 
-bool renderer_init(platform_context_t context, platform_window_t window);
+platform_gl_context_t renderer_init(platform_context_t context, platform_window_t window);
 
 bool renderer_setbgcol(float r, float g, float b, float a);
 bool renderer_clear();
@@ -23,7 +23,3 @@ void* renderer_create_color_material(float r, float g, float b);
 void* renderer_create_texture_material(std::string texture);
 
 void renderer_draw(std::vector<Entity>);
-
-void renderer_swap();
-
-void renderer_deinit();
