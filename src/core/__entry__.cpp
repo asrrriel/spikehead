@@ -1,3 +1,4 @@
+#include "glad/include/glad/glad.h"
 #include "ecs.h"
 #include "platform.h"
 #include "sys/renderer.h"
@@ -58,6 +59,10 @@ int main() {
         std::cout << "[WARNING] Window composition is not supported on Windows" << std::endl;
     #endif
 
+    #ifdef __linux__
+        std::cout << "[WARNING] Multiple windows of different sizes may break on linux" << std::endl;
+    #endif
+
     platform_screen_t screen = platform_get_primary_screen(ctx);
 
     for(size_t  i = 0; i < manifest.windows.size(); i++){
@@ -88,6 +93,7 @@ int main() {
     while(windows.size() != 0){
         for (size_t i = 0; i < windows.size(); ){
             platform_make_context_current(windows[i].gl_context);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glViewport(0, 0, windows[i].width, windows[i].height);
             if(platform_should_close(ctx, windows[i].window)){
                 platform_destroy_gl_context(windows[i].gl_context);
