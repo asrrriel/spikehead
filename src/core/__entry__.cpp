@@ -62,10 +62,6 @@ int main() {
         std::cout << "[WARNING] Window composition is not supported on Windows" << std::endl;
     #endif
 
-    #ifdef __linux__
-        std::cout << "[WARNING] Multiple windows of different sizes may break on linux" << std::endl;
-    #endif
-
     platform_screen_t screen = platform_get_primary_screen(ctx);
 
     for(size_t  i = 0; i < manifest.windows.size(); i++){

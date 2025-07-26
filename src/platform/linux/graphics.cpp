@@ -8,6 +8,7 @@
 #include <string>
 #include <cstring>
 #include <sys/types.h>
+#include <unordered_map>
 #include "platform.h"
 
 struct platform_context {
@@ -35,6 +36,7 @@ struct x_window_t {
     void (*resize_callback)(platform_window_t window, std::size_t width, std::size_t height, uintptr_t private_pointer);
     uintptr_t resize_private_pointer;
     size_t x,y,width, height;
+    bool should_close = false;
 
     x_window_t(Window _window) : window(_window) {
         x = y = width = height = 0;
@@ -112,6 +114,8 @@ platform_screen_t platform_get_primary_screen(platform_context_t context) {
     return reinterpret_cast<platform_screen_t>(DefaultScreenOfDisplay(ctx->display));
 }
 
+std::unordered_map<Window, x_window_t*> window_map;
+
 platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
     Screen* scr = reinterpret_cast<Screen*>(screen);
@@ -145,6 +149,8 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
     }
 
     x_window_t* x_window = new x_window_t(window);
+
+    window_map[window] = x_window;
 
     return reinterpret_cast<platform_window_t>(x_window);
 }
@@ -193,21 +199,22 @@ bool platform_get_size(platform_context_t context, platform_window_t window, std
 
 bool platform_should_close(platform_context_t context, platform_window_t window) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    x_window_t* win = reinterpret_cast<x_window_t*>(window);
+    x_window_t* original_win = reinterpret_cast<x_window_t*>(window);
 
-    bool toret = false;
-
+    //process events for all windows
+    x_window_t* win = original_win;
     while (XPending(ctx->display)) {
         XEvent event;
         XNextEvent(ctx->display, &event);
+        win = window_map[event.xany.window];
 
         switch(event.type) {
             case ClientMessage:
                 if (static_cast<Atom>(event.xclient.data.l[0]) == ctx->wm_delete_window)
-                    toret = true;
+                    win->should_close = true;
                 break;
             case DestroyNotify:
-                toret = true;
+                win->should_close = true;
                 break;
             case ConfigureNotify:
                 if(win->resize_callback) {
@@ -223,7 +230,7 @@ bool platform_should_close(platform_context_t context, platform_window_t window)
         }
 
     }
-    return toret;
+    return original_win->should_close;
 }
 
 void platform_show_window(platform_context_t context, platform_window_t window) {
