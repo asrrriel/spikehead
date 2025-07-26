@@ -36,7 +36,9 @@ struct x_window_t {
     uintptr_t resize_private_pointer;
     size_t x,y,width, height;
 
-    x_window_t(Window _window) : window(_window) {}
+    x_window_t(Window _window) : window(_window) {
+        x = y = width = height = 0;
+    }
 };
 
 platform_context_t platform_init() {
@@ -258,7 +260,7 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
 
     if (!glXCreateContextAttribsARB) {
         std::cerr << "glXCreateContextAttribsARB not available.\n";
-        exit(1);
+        return 0;
     }
 
     int attribs[] = {
