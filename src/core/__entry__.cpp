@@ -50,6 +50,9 @@ int main() {
         exit(69);
     }
 
+    std::cout << manifest.info.name << "(" << manifest.info.version << ") by " << manifest.info.author << std::endl;
+
+
     platform_context_t ctx = platform_init();
     if (!ctx) {
         return 1;

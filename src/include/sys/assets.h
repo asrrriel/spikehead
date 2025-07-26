@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include "renderer.h"
 
@@ -7,17 +8,19 @@ struct asset_pack_location_t {
     bool error;
     bool in_memory;
     union{
-        std::string path;
+        std::filesystem::path path;
         void* data; // TODO: libzip stuff
     };
 
 
-    asset_pack_location_t() : error(true), in_memory(false), data(nullptr) {}
+    asset_pack_location_t() : error(true), in_memory(false) {
+        new (&path) std::filesystem::path();
+    }
 
     // Destructor: destroy active member if needed
     ~asset_pack_location_t() {
         if (!in_memory) {
-            path.~basic_string();
+            path.~path();
         }
     }
 
@@ -26,7 +29,7 @@ struct asset_pack_location_t {
         if (in_memory) {
             data = other.data;
         } else {
-            new (&path) std::string(other.path);
+            new (&path) std::filesystem::path(other.path);
         }
     }
 
@@ -35,7 +38,7 @@ struct asset_pack_location_t {
         if (this == &other) return *this;
 
         if (!in_memory) {
-            path.~basic_string();
+            path.~path();
         }
 
         in_memory = other.in_memory;
@@ -43,7 +46,7 @@ struct asset_pack_location_t {
         if (in_memory) {
             data = other.data;
         } else {
-            new (&path) std::string(other.path);
+            new (&path) std::filesystem::path(other.path);
         }
 
         return *this;
@@ -54,7 +57,7 @@ struct asset_pack_location_t {
         if (in_memory) {
             data = other.data;
         } else {
-            new (&path) std::string(std::move(other.path));
+            new (&path) std::filesystem::path(std::move(other.path));
         }
     }
 
@@ -63,7 +66,7 @@ struct asset_pack_location_t {
         if (this == &other) return *this;
 
         if (!in_memory) {
-            path.~basic_string();
+            path.~path();
         }
 
         in_memory = other.in_memory;
@@ -71,7 +74,7 @@ struct asset_pack_location_t {
         if (in_memory) {
             data = other.data;
         } else {
-            new (&path) std::string(std::move(other.path));
+            new (&path) std::filesystem::path(std::move(other.path));
         }
 
         return *this;

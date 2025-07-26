@@ -24,13 +24,13 @@ asset_pack_location_t find_asset_pack(){
 
     if (std::filesystem::exists(p / "project.json")) {
         toret.in_memory = false;
-        toret.path = p.string();
+        toret.path = p;
         toret.error = false;
         return toret;
     } else if (std::filesystem::exists(p / "assets" / "project.json")) {
         p = p / "assets";
         toret.in_memory = false;
-        toret.path = p.string();
+        toret.path = p;
         toret.error = false;
         return toret;
     } else {
@@ -41,13 +41,12 @@ asset_pack_location_t find_asset_pack(){
     toret.error = true;
     return toret;
 }
-
 bool load_asset_pack(asset_pack_location_t pack){
     if (pack.in_memory) {
         return false; // TODO
     } else {
-        asset_registry.project_json = simdjson::padded_string::load(pack.path + "/project.json");
-        asset_registry.assets_json = simdjson::padded_string::load(pack.path + "/assets.json");
+        asset_registry.project_json = simdjson::padded_string::load((pack.path / "project.json").string());
+        asset_registry.assets_json = simdjson::padded_string::load((pack.path / "assets.json").string());
     }
 
     asset_registry.project_doc = asset_registry.project_parser.iterate(asset_registry.project_json); 
@@ -143,7 +142,7 @@ asset_descriptor_t lookup_asset(std::string intern_id) {
         }
     }
 
-    toret.path = asset_registry.pack.path + "/" + std::string(path);
+    toret.path = (asset_registry.pack.path / std::string(path)).string();
     toret.error = false;
 
     return toret;
