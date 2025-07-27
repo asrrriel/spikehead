@@ -30,12 +30,12 @@ CFLAGS="-std=c++20 -O2 -Wall -Wextra -Isrc/include -Isrc/lib -DPLATFORM=\"$PLATF
 if [ "$PLATFORM" = "win32" ]; then
     TARGET="x86_64-w64-mingw32"
     CFLAGS="$CFLAGS"
-    LDFLAGS="-lopengl32 -luser32 -lgdi32 -lkernel32 -lshell32 -lpthread"
+    LDFLAGS=" -lopengl32 -luser32 -lgdi32 -lkernel32 -lshell32 -lpthread"
     CLANG_CMD="clang++ $CFLAGS -c"
     OUTFILE="bin/$PLATFORM/release.exe"
 elif [ "$PLATFORM" = "linux" ]; then
     TARGET="x86_64-linux-gnu"
-    LDFLAGS="-lGL -lX11"
+    LDFLAGS="-lGL -lX11 -lXinerama"
     CLANG_CMD="clang++ $CFLAGS -c"
     OUTFILE="bin/$PLATFORM/release"
 fi

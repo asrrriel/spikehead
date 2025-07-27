@@ -3,6 +3,7 @@
 #include <X11/Xatom.h>
 #include <GL/glx.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xinerama.h>
 #include <cstddef>
 #include <iostream>
 #include <string>
@@ -17,9 +18,10 @@ struct platform_context {
     GLXFBConfig fbc;
     XVisualInfo* vi;
     Colormap cmap;
+    Screen *scr;
 
-    platform_context(Display* _display, Atom _wm_delete_window, GLXFBConfig _fbc, XVisualInfo* _vi, Colormap _cmap) 
-    : display(_display), wm_delete_window(_wm_delete_window), fbc(_fbc), vi(_vi), cmap(_cmap) {}
+    platform_context(Display* _display, Atom _wm_delete_window, GLXFBConfig _fbc, XVisualInfo* _vi,Screen *_scr, Colormap _cmap) 
+    : display(_display), wm_delete_window(_wm_delete_window), fbc(_fbc), vi(_vi), cmap(_cmap), scr(_scr) {}
 };
 
 struct glx_context {
@@ -96,9 +98,11 @@ platform_context_t platform_init() {
 
     XFree(fbc);
 
-    Colormap cmap = XCreateColormap(display, RootWindowOfScreen(DefaultScreenOfDisplay(display)),vi->visual, AllocNone);
+    Screen *screen = DefaultScreenOfDisplay(display);
 
-    platform_context* ctx = new platform_context(display, wm_delete_window,bestFbc, vi,cmap);
+    Colormap cmap = XCreateColormap(display, RootWindowOfScreen(screen),vi->visual, AllocNone);
+
+    platform_context* ctx = new platform_context(display, wm_delete_window,bestFbc, vi,screen,cmap);
     return reinterpret_cast<platform_context_t>(ctx);
 }
 
@@ -111,20 +115,24 @@ void platform_deinit(platform_context_t context) {
 
 platform_screen_t platform_get_primary_screen(platform_context_t context) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    return reinterpret_cast<platform_screen_t>(DefaultScreenOfDisplay(ctx->display));
+    int number;
+    XineramaScreenInfo* screens = XineramaQueryScreens(ctx->display, &number);
+    if (number > 0) {
+        platform_screen_t primary_screen = reinterpret_cast<platform_screen_t>(&screens[0]);
+        return primary_screen;
+    }
+    return platform_screen_t(nullptr);
 }
 
 screen_size_t platform_get_screen_size(platform_context_t context, platform_screen_t screen){
-    platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    Screen* scr = reinterpret_cast<Screen*>(screen);
-    return {0,0,0,static_cast<size_t>(scr->width), static_cast<size_t>(scr->height)};
+    XineramaScreenInfo* scr = reinterpret_cast<XineramaScreenInfo*>(screen);
+    return {0,static_cast<size_t>(scr->x_org),static_cast<size_t>(scr->y_org),static_cast<size_t>(scr->width), static_cast<size_t>(scr->height)};
 }
 
 std::unordered_map<Window, x_window_t*> window_map;
 
 platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless) {
     platform_context* ctx = reinterpret_cast<platform_context*>(context);
-    Screen* scr = reinterpret_cast<Screen*>(screen);
 
     XSetWindowAttributes swa;
     swa.colormap = ctx->cmap;
@@ -134,7 +142,7 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
 
     Window window = XCreateWindow(
         ctx->display, 
-        RootWindowOfScreen(scr)
+        RootWindowOfScreen(ctx->scr)
         , 0, 0, width, height, 0,
         ctx->vi->depth,
         InputOutput,

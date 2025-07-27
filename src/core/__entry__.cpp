@@ -61,6 +61,8 @@ int main() {
     screen_rect.width = screen_size.width;
     screen_rect.height = screen_size.height;
 
+    std::cout << "Screen geometry: " << screen_rect.x << ", " << screen_rect.y << ", " << screen_rect.width << ", " << screen_rect.height << std::endl;
+
     project_manifest_t manifest = get_project_manifest(screen_rect);
 
     if(std::strcmp(manifest.runtime_version.c_str(), VERSION) != 0){
