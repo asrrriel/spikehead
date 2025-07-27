@@ -13,7 +13,6 @@ wpdl_pass_result_t wpdl_pass_pos(const std::string& tmp,bool vertical,wpdl_resul
     result.error = true;
     if (tmp.length() < 2) return result; //error
 
-    std::cout << tmp[0] << std::endl;
     switch(tmp[0]){
         case 'a':
             result.v = std::stol(tmp.substr(1));
@@ -85,7 +84,6 @@ wpdl_pass_result_t wpdl_pass_pos(const std::string& tmp,bool vertical,wpdl_resul
             }
             break;
         case 's':
-            std::cout << tmp[1] << std::endl;
             switch (tmp[1]) {
                 case 'c':
                     result.centered = true;
@@ -125,7 +123,6 @@ wpdl_pass_result_t wpdl_pass_pos(const std::string& tmp,bool vertical,wpdl_resul
 
 size_t wpdl_pass_size(const std::string& tmp,size_t pos_val,bool vertical,wpdl_result_t first_window,wpdl_result_t last_window,wpdl_result_t screen) {
     size_t result = 0;
-    std::cout << "tmp: " << tmp << std::endl;
     if (tmp.length() < 2) return result; //error
 
     switch(tmp[0]){
