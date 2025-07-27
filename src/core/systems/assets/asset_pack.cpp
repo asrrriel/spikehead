@@ -1,4 +1,5 @@
 #include "sys/assets.h"
+#include "sys/wpdl.h"
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -63,7 +64,7 @@ bool load_asset_pack(asset_pack_location_t pack){
     return true;
 }
 
-project_manifest_t get_project_manifest(){
+project_manifest_t get_project_manifest(wpdl_result_t screen){
     project_manifest_t toret;
 
     //runtime version
@@ -102,18 +103,40 @@ project_manifest_t get_project_manifest(){
         return toret; // default-constructed
     }
 
+    wpdl_result_t first;
+    wpdl_result_t last;
+
+    first.error = true;
+    last.error = true;
+
     for(auto window : windows_result){
         project_window_t toret_window;
         auto name = window["name"];
-        auto width = window["width"];
-        auto height = window["height"];
-        if(name.error() || width.error() || height.error()){
-            std::cerr << "[FATAL] initial-windows is missing fields, should have: name, width, height .\n";
+        auto positioning = window["positioning"];
+        auto borderless = window["borderless"];
+        if(name.error() || positioning.error() || borderless.error()){
+            std::cerr << "[FATAL] initial-windows is missing fields, should have: name, positioning, borderless .\n";
             return toret;
         }
         toret_window.name = std::string(name);
-        toret_window.width = static_cast<uint32_t>(width);
-        toret_window.height = static_cast<uint32_t>(height);
+        toret_window.borderless = bool(borderless);
+        wpdl_result_t wpdl_result = wpdl_parse(std::string(positioning),first,last,screen);
+        
+        if(wpdl_result.error){
+            std::cerr << "[FATAL] invalid wdpl on window \"" << toret_window.name << "\".\n";
+            return toret;
+        }
+
+        if(first.error){
+            first = wpdl_result;
+        }
+        last = wpdl_result;
+        
+        toret_window.x = wpdl_result.x;
+        toret_window.y = wpdl_result.y;
+        toret_window.width = wpdl_result.width;
+        toret_window.height = wpdl_result.height;
+
         toret.windows.push_back(toret_window);
     }
 

@@ -8,11 +8,21 @@ typedef std::uintptr_t platform_context_t;
 typedef std::uintptr_t platform_screen_t;
 typedef std::uintptr_t platform_window_t;
 
+struct screen_size_t {
+    bool error;
+    std::size_t x;
+    std::size_t y;
+    std::size_t width;
+    std::size_t height;
+};
+
 
 platform_context_t platform_init();
 void platform_deinit(platform_context_t context);
 
 platform_screen_t platform_get_primary_screen(platform_context_t context);
+
+screen_size_t platform_get_screen_size(platform_context_t context, platform_screen_t screen);
 
 platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless);
 

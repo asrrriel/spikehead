@@ -2,7 +2,8 @@
 
 #include <filesystem>
 #include <string>
-#include "renderer.h"
+#include <vector>
+#include "sys/wpdl.h"
 
 struct asset_pack_location_t {
     bool error;
@@ -97,9 +98,9 @@ struct asset_descriptor_t {
 };
 
 struct project_window_t {
-    int width;
-    int height;
     std::string name;
+    size_t x, y, width, height;
+    bool borderless;
 };
 
 struct project_info_t {
@@ -119,5 +120,5 @@ struct project_manifest_t {
 
 asset_pack_location_t find_asset_pack();
 bool load_asset_pack(asset_pack_location_t pack);
-project_manifest_t get_project_manifest();
+project_manifest_t get_project_manifest(wpdl_result_t screen);
 asset_descriptor_t lookup_asset(std::string intern_id);

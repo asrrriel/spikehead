@@ -114,6 +114,12 @@ platform_screen_t platform_get_primary_screen(platform_context_t context) {
     return reinterpret_cast<platform_screen_t>(DefaultScreenOfDisplay(ctx->display));
 }
 
+screen_size_t platform_get_screen_size(platform_context_t context, platform_screen_t screen){
+    platform_context* ctx = reinterpret_cast<platform_context*>(context);
+    Screen* scr = reinterpret_cast<Screen*>(screen);
+    return {0,0,0,static_cast<size_t>(scr->width), static_cast<size_t>(scr->height)};
+}
+
 std::unordered_map<Window, x_window_t*> window_map;
 
 platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless) {
@@ -142,7 +148,7 @@ platform_window_t platform_create_window(platform_context_t context, platform_sc
 
     if(borderless) {
         Atom wm_type_atom = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE", False);
-        Atom wm_type_value = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE_UTILITY", False);
+        Atom wm_type_value = XInternAtom(ctx->display, "_NET_WM_WINDOW_TYPE_DOCK", False);
         
         XChangeProperty(ctx->display, window, wm_type_atom, XA_ATOM, 32, PropModeReplace,
                         (unsigned char *)&wm_type_value, 1);

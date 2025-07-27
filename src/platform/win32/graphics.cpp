@@ -91,8 +91,31 @@ void platform_deinit(platform_context_t context) {
 }
 
 platform_screen_t platform_get_primary_screen(platform_context_t context) {
-    return 1;
+    HMONITOR primary = MonitorFromPoint(POINT{0, 0}, MONITOR_DEFAULTTOPRIMARY);
+    return reinterpret_cast<platform_screen_t>(primary);
 }
+
+screen_size_t platform_get_screen_size(platform_context_t context, platform_screen_t screen) {
+    HMONITOR primary = reinterpret_cast<HMONITOR>(screen);
+    screen_size_t result = {0, 0, 0, 0, 0};
+    result.error = true;
+
+    if (!screen) return result;
+
+    MONITORINFO info = {};
+    info.cbSize = sizeof(MONITORINFO);
+
+    if (GetMonitorInfoA(primary, &info)) {
+        result.x = info.rcMonitor.left;
+        result.y = info.rcMonitor.top;
+        result.width = info.rcMonitor.right - info.rcMonitor.left;
+        result.height = info.rcMonitor.bottom - info.rcMonitor.top;
+        result.error = false;
+    }
+
+    return result;
+}
+
 
 platform_window_t platform_create_window(platform_context_t context, platform_screen_t screen, std::size_t width, std::size_t height, bool borderless) {
     Win32Context* ctx = reinterpret_cast<Win32Context*>(context);

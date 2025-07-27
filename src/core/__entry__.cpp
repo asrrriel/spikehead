@@ -4,6 +4,7 @@
 #include "sys/renderer.h"
 #include "sys/assets.h"
 #include "math.h"
+#include "sys/wpdl.h"
 #include <GL/gl.h>
 #include <cstddef>
 #include <cstring>
@@ -33,6 +34,12 @@ void resize_callback(platform_window_t window, std::size_t width, std::size_t he
 }
 
 int main() {
+    platform_context_t ctx = platform_init();
+    if (!ctx) {
+        std::cerr << "[FATAL] Failed to initialize platform context" << std::endl;
+        exit(1);
+    }
+
     asset_pack_location_t pack = find_asset_pack();
 
     if(pack.error){
@@ -44,13 +51,23 @@ int main() {
         exit(42);
     }
 
-    project_manifest_t manifest = get_project_manifest();
+    platform_screen_t screen = platform_get_primary_screen(ctx);
+    wpdl_result_t screen_rect = {false, 0, 0, 0, 0};
+
+    screen_size_t screen_size = platform_get_screen_size(ctx, screen);
+
+    screen_rect.x = screen_size.x;
+    screen_rect.y = screen_size.y;
+    screen_rect.width = screen_size.width;
+    screen_rect.height = screen_size.height;
+
+    project_manifest_t manifest = get_project_manifest(screen_rect);
 
     if(std::strcmp(manifest.runtime_version.c_str(), VERSION) != 0){
         std::cerr << "[FATAL] Mismached runtime version: " << manifest.runtime_version << " != " << VERSION << std::endl;
         exit(69);
     }
-    
+
     if(manifest.error){
         std::cerr << "[FATAL] Failed to load project manifest" << std::endl;
         exit(69);
@@ -58,22 +75,15 @@ int main() {
 
     std::cout << manifest.info.name << "(" << manifest.info.version << ") by " << manifest.info.author << std::endl;
 
-
-    platform_context_t ctx = platform_init();
-    if (!ctx) {
-        return 1;
-    }
-
     #ifdef _WIN32
         std::cout << "[WARNING] Window composition is not supported on Windows" << std::endl;
     #endif
 
-    platform_screen_t screen = platform_get_primary_screen(ctx);
-
     for(size_t  i = 0; i < manifest.windows.size(); i++){
-        platform_window_t p_window = platform_create_window(ctx, screen, manifest.windows[i].width, manifest.windows[i].height, false);
+        platform_window_t p_window = platform_create_window(ctx, screen, manifest.windows[i].width, manifest.windows[i].height, manifest.windows[i].borderless);
         platform_set_title(ctx, p_window, manifest.windows[i].name);
         platform_show_window(ctx, p_window);
+        platform_set_position(ctx,  p_window, manifest.windows[i].x, manifest.windows[i].y);
         platform_register_resize_callback(ctx, p_window, i, resize_callback);
     
         platform_gl_context_t gl_context = renderer_init(ctx, p_window);

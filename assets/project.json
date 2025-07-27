@@ -7,14 +7,14 @@
     },
     "initial-windows": [
         {
-            "width": 800,
-            "height": 600,
-            "name": "Test window A!"
+            "name": "In soviet Russia...",
+            "borderless": false,
+            "positioning": "sc;sc;a800;a600"
         },
         {
-            "width": 100,
-            "height": 100,
-            "name": "Test window B!"
+            "name": "...Asriel pets you!",
+            "borderless": true,
+            "positioning": "llp10;lc;a100;a100"
         }
     ]
 }
