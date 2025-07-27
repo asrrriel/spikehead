@@ -66,8 +66,11 @@ public:
     }
 };
 
-using Vec2f = Vector<float, 2>;
-using Vec2i = Vector<int, 2>;
+using Vec2 = Vector<float, 2>;
+using iVec2 = Vector<int, 2>;
 
-using Vec3f = Vector<float, 3>;
-using Vec3i = Vector<int, 3>;
+using Vec3 = Vector<float, 3>;
+using iVec3 = Vector<int, 3>;
+
+using Vec4 = Vector<float, 4>;
+using iVec4 = Vector<int, 4>;

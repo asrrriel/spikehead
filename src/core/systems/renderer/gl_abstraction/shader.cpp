@@ -52,9 +52,18 @@ void Shader::SetUniform1i(std::string name, int value){
     glUniform1i(loaction, value);
 }
 
-void Shader::SetUniform3f(std::string name, Vec3f value){
+void Shader::SetUniform3f(std::string name, Vec3 &value){
     GLuint loaction = glGetUniformLocation(ID, name.c_str());
     glUniform3f(loaction, value[0], value[1], value[2]);
+}
+
+void Shader::SetUniform4f(std::string name, Vec4 &value){
+    GLuint loaction = glGetUniformLocation(ID, name.c_str());
+    glUniform4f(loaction, value[0], value[1], value[2], value[3]);
+}
+void Shader::SetUniform4x4f(std::string name, Mat4 &value){
+    GLuint loaction = glGetUniformLocation(ID, name.c_str());
+    glUniformMatrix4fv(loaction, 1, GL_FALSE, value.get_data());
 }
 
 Shader::~Shader(){

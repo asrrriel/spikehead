@@ -4,10 +4,10 @@
 
 #define MAX_COMPS 64
 
-#define COMP_TYPE_TRANSFORM 0
-#define COMP_TYPE_SQUARE    1
-#define COMP_TYPE_MAT_COLOR 2
-#define COMP_TYPE_MAT_TEXTURE 3
+#define COMP_TYPE_TRANSFORM 1
+#define COMP_TYPE_SQUARE    2
+#define COMP_TYPE_MAT_COLOR 3
+#define COMP_TYPE_MAT_TEXTURE 4
 
 class Entity {
     void* components[MAX_COMPS];

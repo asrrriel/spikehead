@@ -6,30 +6,32 @@
 
 static std::string color_vert = R"(
 #version 330 core
-layout (location = 0) in vec2 aPos;
+layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoords;
+uniform mat4 tvp;
 void main() {
-    gl_Position = vec4(aPos, 1.0, 1.0);
+    gl_Position = tvp * vec4(aPos, 1.0);
 }
 )";
 
 static std::string color_frag = R"(
 #version 330 core
 out vec4 FragColor;
-uniform vec3 color;
+uniform vec4 color;
 void main() {
-    FragColor = vec4(color, 1.0);
+    FragColor = color;
 }
 )";
 
 static std::string texture_vert = R"(
 #version 330 core
-layout (location = 0) in vec2 aPos;
+layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoords;
 out vec2 TexCoords;
+uniform mat4 tvp;
 void main() {
     TexCoords = aTexCoords;
-    gl_Position = vec4(aPos, 1.0, 1.0);
+    gl_Position = tvp * vec4(aPos, 1.0);
 }
 )";
 
@@ -58,10 +60,10 @@ void init_defaults(){
 
     //SQUARE
     float vertices[] = {
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f,
-        -1.0f,  1.0f,  0.0f, 1.0f
+        0.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+         1.0f,0.0f, 0.0f,  1.0f, 0.0f,
+         1.0f,1.0f, 0.0f,  1.0f, 1.0f,
+        0.0f,1.0f,  0.0f, 0.0f, 1.0f
     };
     unsigned int indices[] = {
         0, 1, 2,
@@ -75,8 +77,8 @@ void init_defaults(){
     square_ibo = new IBO(indices, sizeof(indices));
     square_vbo.Bind();
     square_ibo->Bind();
-    square_vao->LinkAttrib(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    square_vao->LinkAttrib(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    square_vao->LinkAttrib(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    square_vao->LinkAttrib(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     square_vao->Unbind();
     square_vbo.Unbind();
     square_ibo->Unbind();

@@ -1,3 +1,4 @@
+#include "math/transform.h"
 #include "platform.h"
 #include "glad/include/glad/glad.h"
 #include "GL/gl.h"
@@ -80,12 +81,10 @@ bool renderer_clear(){
 }
 
 
-void* renderer_create_color_material(float r, float g, float b){
+void* renderer_create_color_material(Vec4 color){
     color_material_t* mat = new color_material_t();
 
-    float color[] = {r, g, b};
-
-    mat->color = Vec3f(color);
+    mat->color = Vec4(color);
 
     return reinterpret_cast<void*>(mat);
 }
@@ -126,7 +125,17 @@ void* renderer_create_texture_material(std::string texture){
     return reinterpret_cast<void*>(mat);
 }
 
+void* renderer_create_transform(Vec3 position, Vec3 scale, Vec3 rotation){
+    transform_t* t = new transform_t();
+    t->position = position;
+    t->scale = scale;
+    t->rotation = rotation;
+
+    return reinterpret_cast<void*>(t);
+}
+
 void __render_material(Entity e, VAO* vao, GLuint index_count){
+    Shader *shader = nullptr;
     if(e.has_component(COMP_TYPE_MAT_COLOR)){
         color_material_t* c = (color_material_t*)e.get_component(COMP_TYPE_MAT_COLOR);
         if(!c){
@@ -134,7 +143,8 @@ void __render_material(Entity e, VAO* vao, GLuint index_count){
             return;
         }
         color_shader->Bind();
-        color_shader->SetUniform3f("color", c->color);
+        color_shader->SetUniform4f("color", c->color);
+        shader = color_shader;
     } else if(e.has_component(COMP_TYPE_MAT_TEXTURE)){
         texture_material_t* t = (texture_material_t*)e.get_component(COMP_TYPE_MAT_TEXTURE);
         if(!t){
@@ -144,10 +154,27 @@ void __render_material(Entity e, VAO* vao, GLuint index_count){
         t->texture->Bind(0);
         texture_shader->Bind();
         texture_shader->SetUniform1i("texture1", 0);
+        shader = texture_shader;
     } else {
         std::cout << "No material\n";
         return;
     }
+
+    Mat4 tvp = get_identity();
+    
+    if(e.has_component(COMP_TYPE_TRANSFORM)){
+        transform_t* t = (transform_t*)e.get_component(COMP_TYPE_TRANSFORM);
+        Mat4 rotation = rotate(Vec3(t->rotation));
+        Mat4 translation = translate(Vec3(t->position));
+        Mat4 scalation = scale(Vec3(t->scale));
+        Mat4 transform = scalation * rotation * translation;
+
+        tvp *= transform;
+    }
+
+
+    
+    shader->SetUniform4x4f("tvp", tvp);
 
     vao->Bind();
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);

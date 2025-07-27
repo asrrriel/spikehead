@@ -99,6 +99,14 @@ int main() {
         exit(69);
     }
 
+    void* t = renderer_create_transform(Vec3((float[3]){-.5, -.5, 0}), Vec3((float[3]){1, 1, 1}), Vec3((float[3]){0, 0, 0}));
+    
+    transform_t* transform = (transform_t*)t; //for modification
+
+    if(!e.add_component(COMP_TYPE_TRANSFORM, t)){
+        exit(69);
+    }
+
     void* mat = renderer_create_texture_material("test_img");
 
     if(!e.add_component(COMP_TYPE_MAT_TEXTURE, mat)){
@@ -106,6 +114,9 @@ int main() {
     }
 
     entities.push_back(e);
+
+    auto startTime = std::chrono::high_resolution_clock::now();
+
 
     while(windows.size() != 0){
         for (size_t i = 0; i < windows.size(); ){
@@ -118,12 +129,18 @@ int main() {
                 windows.erase(windows.begin() + i);
                 continue;
             }
-            renderer_setbgcol(0,0,0,0);
+            renderer_setbgcol(0,0,0,1);
             renderer_clear();
             renderer_draw(entities);
             platform_swap_buffers(windows[i].gl_context);
             ++i;
         }
+
+        auto now = std::chrono::high_resolution_clock::now();
+        float elapsedSeconds = std::chrono::duration<float>(now - startTime).count();
+
+        transform->rotation[2] = elapsedSeconds;
+    
     }
 
     platform_deinit(ctx);

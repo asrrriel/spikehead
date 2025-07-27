@@ -7,14 +7,9 @@
     },
     "initial-windows": [
         {
-            "name": "In soviet Russia...",
+            "name": "Testin' the limits of game engine prowess",
             "borderless": false,
             "positioning": "sc;sc;a800;a600"
-        },
-        {
-            "name": "...Asriel pets you!",
-            "borderless": true,
-            "positioning": "llp10;lc;a100;a100"
         }
     ]
 }
