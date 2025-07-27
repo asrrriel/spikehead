@@ -66,6 +66,15 @@ bool load_asset_pack(asset_pack_location_t pack){
 project_manifest_t get_project_manifest(){
     project_manifest_t toret;
 
+    //runtime version
+    auto runtime_result = asset_registry.project_doc["runtime-version"];
+    if (runtime_result.error()) {
+        std::cerr << "[FATAL] runtime-version not found.\n";
+        return toret; // default-constructed
+    }
+
+    toret.runtime_version = std::string(runtime_result);
+
     //project info
     auto info_result = asset_registry.project_doc["project-info"];
     if (info_result.error()) {

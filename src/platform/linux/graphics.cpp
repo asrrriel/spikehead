@@ -280,8 +280,6 @@ platform_gl_context_t platform_create_gl_context(platform_context_t context, pla
     GLXContext share = shared_ctx ? shared_ctx->gl_context : None;
     GLXContext glc = glXCreateContextAttribsARB(pctx->display,pctx->fbc, share, True, attribs);
     
-    std::cout << "GLC: " << glc << std::endl;
-
     if (glc == NULL) {
         std::cerr << "Failed to create GLX context\n";
         return 0;

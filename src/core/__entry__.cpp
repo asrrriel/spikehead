@@ -6,6 +6,7 @@
 #include "math.h"
 #include <GL/gl.h>
 #include <cstddef>
+#include <cstring>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -45,6 +46,11 @@ int main() {
 
     project_manifest_t manifest = get_project_manifest();
 
+    if(std::strcmp(manifest.runtime_version.c_str(), VERSION) != 0){
+        std::cerr << "[FATAL] Mismached runtime version: " << manifest.runtime_version << " != " << VERSION << std::endl;
+        exit(69);
+    }
+    
     if(manifest.error){
         std::cerr << "[FATAL] Failed to load project manifest" << std::endl;
         exit(69);

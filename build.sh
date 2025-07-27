@@ -25,7 +25,7 @@ PLATFORM_FILES=$(find src/platform/$PLATFORM -name '*.cpp')
 ALL_CPP="$CORE_FILES $PLATFORM_FILES $LIB_FILES"
 
 LDFLAGS=""
-CFLAGS="-std=c++20 -O2 -Isrc/include -Isrc/lib -DPLATFORM=\"$PLATFORM\""
+CFLAGS="-std=c++20 -O2 -Isrc/include -Isrc/lib -DPLATFORM=\"$PLATFORM\" -DVERSION=\"unreleased\""
 
 if [ "$PLATFORM" = "win32" ]; then
     TARGET="x86_64-w64-mingw32"

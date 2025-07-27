@@ -110,6 +110,7 @@ struct project_info_t {
 
 struct project_manifest_t {
     bool error;
+    std::string runtime_version;
     project_info_t info;
     std::vector<project_window_t> windows;
 
