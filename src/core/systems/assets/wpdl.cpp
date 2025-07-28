@@ -127,7 +127,6 @@ size_t wpdl_pass_size(const std::string& tmp,size_t pos_val,bool vertical,wpdl_r
 
     switch(tmp[0]){
         case 'a':
-            std::cout << tmp.substr(1) << std::endl;
             result = std::stol(tmp.substr(1));
             break;
         case 'f':

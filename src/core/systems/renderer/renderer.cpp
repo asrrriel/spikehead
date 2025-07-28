@@ -180,8 +180,6 @@ void __render_material(Entity e, VAO* vao, GLuint index_count, wpdl_result_t can
     float width = canvas.width;
     float height = canvas.height;
     
-    std::cout << "[" << -width << ", " << -height << ", " << width << ", " << height << "]" << std::endl;
-
     tvp *= ortho(-width, width, -height, height, 0, 1);
     
 
