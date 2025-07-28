@@ -52,3 +52,15 @@ Mat4 scale(Vec3 scale) {
         0, 0, 0, 1
     });
 }
+
+Mat4 ortho(float left, float right, float bottom, float top, float near, float far) {
+    return Mat4((float[]){
+        2 / (right - left), 0, 0, 0,
+        0, 2 / (top - bottom), 0, 0,
+        0, 0, -2 / (far - near), 0,
+        -(right + left) / (right - left),
+        -(top + bottom) / (top - bottom),
+        -(far + near) / (far - near),
+        1
+    });
+}

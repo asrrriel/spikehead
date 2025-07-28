@@ -99,7 +99,7 @@ int main() {
         exit(69);
     }
 
-    void* t = renderer_create_transform(Vec3((float[3]){-.5, -.5, 0}), Vec3((float[3]){1, 1, 1}), Vec3((float[3]){0, 0, 0}));
+    void* t = renderer_create_transform(Vec3((float[3]){0, 0, 0}), Vec3((float[3]){200, 200, 200}), Vec3((float[3]){0, 0, 0}));
     
     transform_t* transform = (transform_t*)t; //for modification
 
@@ -131,7 +131,7 @@ int main() {
             }
             renderer_setbgcol(0,0,0,1);
             renderer_clear();
-            renderer_draw(entities);
+            renderer_draw(entities, wpdl_result_t(false, 0,0, windows[i].width, windows[i].height));
             platform_swap_buffers(windows[i].gl_context);
             ++i;
         }

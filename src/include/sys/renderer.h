@@ -3,6 +3,7 @@
 #include <GL/gl.h>
 #include <vector>
 #include "math/vector.h"
+#include "sys/wpdl.h"
 #include "gl_abstraction/texture.h"
 #include "ecs.h"
 
@@ -30,4 +31,4 @@ void* renderer_create_texture_material(std::string texture);
 
 void* renderer_create_transform(Vec3 position, Vec3 scale, Vec3 rotation);
 
-void renderer_draw(std::vector<Entity>);
+void renderer_draw(std::vector<Entity>, wpdl_result_t canvas);

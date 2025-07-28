@@ -7,7 +7,7 @@
     },
     "initial-windows": [
         {
-            "name": "Testin' the limits of game engine prowess",
+            "name": "Testin'",
             "borderless": false,
             "positioning": "sc;sc;a800;a600"
         }

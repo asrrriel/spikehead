@@ -10,6 +10,7 @@
 #include "gl_abstraction/shader.h"
 #include "nothings/stb_image.h"
 #include "sys/assets.h"
+#include "sys/wpdl.h"
 #include <iostream>
 #include <sys/types.h>
 #include <vector>
@@ -18,6 +19,9 @@ extern Shader* color_shader;
 extern Shader* texture_shader;
 extern VAO   * square_vao;
 extern IBO   * square_ibo;
+
+Entity* camera = nullptr;
+wpdl_result_t screen = {0,0,0,0};
 
 void init_defaults();
 
@@ -134,7 +138,7 @@ void* renderer_create_transform(Vec3 position, Vec3 scale, Vec3 rotation){
     return reinterpret_cast<void*>(t);
 }
 
-void __render_material(Entity e, VAO* vao, GLuint index_count){
+void __render_material(Entity e, VAO* vao, GLuint index_count, wpdl_result_t canvas){
     Shader *shader = nullptr;
     if(e.has_component(COMP_TYPE_MAT_COLOR)){
         color_material_t* c = (color_material_t*)e.get_component(COMP_TYPE_MAT_COLOR);
@@ -162,18 +166,25 @@ void __render_material(Entity e, VAO* vao, GLuint index_count){
 
     Mat4 tvp = get_identity();
     
+    
     if(e.has_component(COMP_TYPE_TRANSFORM)){
         transform_t* t = (transform_t*)e.get_component(COMP_TYPE_TRANSFORM);
         Mat4 rotation = rotate(Vec3(t->rotation));
         Mat4 translation = translate(Vec3(t->position));
         Mat4 scalation = scale(Vec3(t->scale));
-        Mat4 transform = scalation * rotation * translation;
-
+        Mat4 transform = rotation * scalation * translation;
+        
         tvp *= transform;
     }
 
-
+    float width = canvas.width;
+    float height = canvas.height;
     
+    std::cout << "[" << -width << ", " << -height << ", " << width << ", " << height << "]" << std::endl;
+
+    tvp *= ortho(-width, width, -height, height, 0, 1);
+    
+
     shader->SetUniform4x4f("tvp", tvp);
 
     vao->Bind();
@@ -182,10 +193,10 @@ void __render_material(Entity e, VAO* vao, GLuint index_count){
     vao->Unbind();
 }
 
-void renderer_draw(std::vector<Entity> entities){
+void renderer_draw(std::vector<Entity> entities, wpdl_result_t canvas){
     for (auto e : entities) {
         if(e.has_component(COMP_TYPE_SQUARE)){
-            __render_material(e, square_vao, 6);
+            __render_material(e, square_vao, 6, canvas);
         }
     } 
 }
