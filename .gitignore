@@ -3,6 +3,7 @@ tmp/
 bin/
 compile_commands.json
 .cache/
+.vscode/
 
 # DO NOT REMOVE FOR LICENSING REASONS
 src/lib/simdjson/ 
