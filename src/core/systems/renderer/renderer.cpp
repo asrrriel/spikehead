@@ -1,3 +1,4 @@
+#include "math/matrix.h"
 #include "math/transform.h"
 #include "platform.h"
 #include "glad/include/glad/glad.h"
@@ -13,6 +14,7 @@
 #include "utils/engine_types.h"
 #include <iostream>
 #include <sys/types.h>
+#include <cmath>
 #include <vector>
 
 extern Shader* color_shader;
@@ -129,11 +131,13 @@ void* renderer_create_texture_material(std::string texture){
     return reinterpret_cast<void*>(mat);
 }
 
-void* renderer_create_transform(Vec3 position, Vec3 scale, Vec3 rotation){
-    transform_t* t = new transform_t();
+void* renderer_create_transform(Vec2 position, Vec2 scale, float rotation){
+    transform2d_t* t = new transform2d_t();
     t->position = position;
     t->scale = scale;
     t->rotation = rotation;
+    t->changed = true;
+    t->model = get_identity(); 
 
     return reinterpret_cast<void*>(t);
 }
@@ -167,20 +171,28 @@ void __render_material(Entity e, VAO* vao, GLuint index_count, sh_rect_t canvas)
     Mat4 tvp = get_identity();
     
     
-    if(e.has_component(COMP_TYPE_TRANSFORM)){
-        transform_t* t = (transform_t*)e.get_component(COMP_TYPE_TRANSFORM);
-        Mat4 rotation = rotate(Vec3(t->rotation));
-        Mat4 translation = translate(Vec3(t->position));
-        Mat4 scalation = scale(Vec3(t->scale));
-        Mat4 transform = rotation * scalation * translation;
+    if(e.has_component(COMP_TYPE_TRANSFORM_2D)){
+        transform2d_t* t = (transform2d_t*)e.get_component(COMP_TYPE_TRANSFORM_2D);
+
+        if(!t){
+            std::cout << "Invalid transform\n";
+            return;
+        }
         
-        tvp *= transform;
+        if(t->changed){
+            Mat4 rotation = rotate(Vec4((float[4]){static_cast<float>(cos(t->rotation * 0.5) ), 0, 0, static_cast<float>(sin(t->rotation * 0.5) )}));
+            Mat4 translation = translate(Vec3((float[3]){t->position[0], t->position[1], 0}));
+            Mat4 scalation = scale(Vec3((float[3]){t->scale[0], t->scale[1], 0}));
+            t->model = rotation * scalation * translation;
+        }
+        
+        tvp *= t->model;
     }
 
     float width = canvas.width;
     float height = canvas.height;
     
-    tvp *= ortho(-width, width, -height, height, 0, 1);
+    tvp *= ortho(-width, width, -height, height, -1, 1);
     
 
     shader->SetUniform4x4f("tvp", tvp);

@@ -96,11 +96,11 @@ int main() {
         exit(69);
     }
 
-    void* t = renderer_create_transform(Vec3((float[3]){0, 0, 0}), Vec3((float[3]){200, 200, 200}), Vec3((float[3]){0, 0, 0}));
+    void* t = renderer_create_transform(Vec2((float[2]){0, 0}), Vec2((float[2]){200, 200}),0);
     
-    transform_t* transform = (transform_t*)t; //for modification
+    transform2d_t* transform = (transform2d_t*)t; //for modification
 
-    if(!e.add_component(COMP_TYPE_TRANSFORM, t)){
+    if(!e.add_component(COMP_TYPE_TRANSFORM_2D, t)){
         exit(69);
     }
 
@@ -136,8 +136,9 @@ int main() {
         auto now = std::chrono::high_resolution_clock::now();
         float elapsedSeconds = std::chrono::duration<float>(now - startTime).count();
 
-        transform->rotation[2] = elapsedSeconds;
-    
+        transform->rotation = elapsedSeconds;
+        transform->changed = true;
+
     }
 
     platform_deinit(ctx);

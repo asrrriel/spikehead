@@ -6,10 +6,12 @@
 #include "ecs.h"
 #include "utils/engine_types.h"
 
-struct transform_t {
-    Vec3 position;
-    Vec3 scale;
-    Vec3 rotation;
+struct transform2d_t {
+    Vec2 position;
+    Vec2 scale;
+    float rotation;
+    bool changed;
+    Mat4 model;
 };
 
 struct color_material_t {
@@ -28,6 +30,6 @@ bool renderer_clear();
 void* renderer_create_color_material(Vec4 color);
 void* renderer_create_texture_material(std::string texture);
 
-void* renderer_create_transform(Vec3 position, Vec3 scale, Vec3 rotation);
+void* renderer_create_transform(Vec2 position, Vec2 scale, float rotation);
 
 void renderer_draw(std::vector<Entity>, sh_rect_t canvas);

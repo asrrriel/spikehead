@@ -5,7 +5,7 @@
 
 Mat4 get_identity();
 
-Mat4 rotate(Vec3 rot);
+Mat4 rotate(Vec4 rot);
 Mat4 translate(Vec3 trans);
 Mat4 scale(Vec3 scale);
 
