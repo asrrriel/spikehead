@@ -97,12 +97,23 @@ if [ "$ACTION" = "build" ] || [ "$ACTION" = "run" ]; then
             echo "Compiling $SRC..."
             mkdir -p "$(dirname $OBJ)"
             $CLANG_CMD "--target=$TARGET" "$SRC" -o "$OBJ"
+            if [ $? -ne 0 ]; then
+                echo "Compilation failed!"
+                exit 1
+            fi
         fi
     done
     echo "]" >> "$CMD_FILE"
 
     echo "Building $OUTFILE..."
     clang++ "--target=$TARGET" $O_FILES $LDFLAGS -o "$OUTFILE"
+
+    if [ $? -ne 0 ]; then
+        echo "Linking failed!"
+        exit 1
+    fi
+
+
 fi
 
 if [ "$ACTION" = "run" ]; then
