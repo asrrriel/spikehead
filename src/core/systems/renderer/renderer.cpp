@@ -10,7 +10,7 @@
 #include "gl_abstraction/shader.h"
 #include "nothings/stb_image.h"
 #include "sys/assets.h"
-#include "sys/wpdl.h"
+#include "utils/engine_types.h"
 #include <iostream>
 #include <sys/types.h>
 #include <vector>
@@ -21,7 +21,7 @@ extern VAO   * square_vao;
 extern IBO   * square_ibo;
 
 Entity* camera = nullptr;
-wpdl_result_t screen = {0,0,0,0};
+sh_rect_t screen = {0,0,0,0,0};
 
 void init_defaults();
 
@@ -138,7 +138,7 @@ void* renderer_create_transform(Vec3 position, Vec3 scale, Vec3 rotation){
     return reinterpret_cast<void*>(t);
 }
 
-void __render_material(Entity e, VAO* vao, GLuint index_count, wpdl_result_t canvas){
+void __render_material(Entity e, VAO* vao, GLuint index_count, sh_rect_t canvas){
     Shader *shader = nullptr;
     if(e.has_component(COMP_TYPE_MAT_COLOR)){
         color_material_t* c = (color_material_t*)e.get_component(COMP_TYPE_MAT_COLOR);
@@ -191,7 +191,7 @@ void __render_material(Entity e, VAO* vao, GLuint index_count, wpdl_result_t can
     vao->Unbind();
 }
 
-void renderer_draw(std::vector<Entity> entities, wpdl_result_t canvas){
+void renderer_draw(std::vector<Entity> entities, sh_rect_t canvas){
     for (auto e : entities) {
         if(e.has_component(COMP_TYPE_SQUARE)){
             __render_material(e, square_vao, 6, canvas);

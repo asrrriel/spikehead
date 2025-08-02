@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
-#include "sys/wpdl.h"
+#include "utils/engine_types.h"
 
 struct asset_pack_location_t {
     bool error;
@@ -120,5 +120,5 @@ struct project_manifest_t {
 
 asset_pack_location_t find_asset_pack();
 bool load_asset_pack(asset_pack_location_t pack);
-project_manifest_t get_project_manifest(wpdl_result_t screen);
+project_manifest_t get_project_manifest(sh_rect_t screen);
 asset_descriptor_t lookup_asset(std::string intern_id);

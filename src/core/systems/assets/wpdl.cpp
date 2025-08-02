@@ -8,7 +8,7 @@ struct wpdl_pass_result_t {
     char relative = 's';  
 };
 
-wpdl_pass_result_t wpdl_pass_pos(const std::string& tmp,bool vertical,wpdl_result_t first_window,wpdl_result_t last_window,wpdl_result_t screen) {
+wpdl_pass_result_t wpdl_pass_pos(const std::string& tmp,bool vertical,sh_rect_t first_window,sh_rect_t last_window,sh_rect_t screen) {
     wpdl_pass_result_t result;
     result.error = true;
     if (tmp.length() < 2) return result; //error
@@ -121,7 +121,7 @@ wpdl_pass_result_t wpdl_pass_pos(const std::string& tmp,bool vertical,wpdl_resul
     return result;
 }
 
-size_t wpdl_pass_size(const std::string& tmp,size_t pos_val,bool vertical,wpdl_result_t first_window,wpdl_result_t last_window,wpdl_result_t screen) {
+size_t wpdl_pass_size(const std::string& tmp,size_t pos_val,bool vertical,sh_rect_t first_window,sh_rect_t last_window,sh_rect_t screen) {
     size_t result = 0;
     if (tmp.length() < 2) return result; //error
 
@@ -224,8 +224,8 @@ size_t wpdl_pass_size(const std::string& tmp,size_t pos_val,bool vertical,wpdl_r
 }
 
 
-wpdl_result_t wpdl_parse(const std::string& wpdl,wpdl_result_t first_window,wpdl_result_t last_window,wpdl_result_t screen) {
-    wpdl_result_t result;
+sh_rect_t wpdl_parse(const std::string& wpdl,sh_rect_t first_window,sh_rect_t last_window,sh_rect_t screen) {
+    sh_rect_t result;
     result.error = true;
     bool is_x_centered = false;
     bool is_y_centered = false;

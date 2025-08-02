@@ -4,13 +4,12 @@
 #include "sys/renderer.h"
 #include "sys/assets.h"
 #include "math.h"
-#include "sys/wpdl.h"
+#include "utils/engine_types.h"
 #include <GL/gl.h>
 #include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <chrono>
-#include <thread>
 
 struct engine_window_t {
     platform_window_t window;
@@ -52,7 +51,7 @@ int main() {
     }
 
     platform_screen_t screen = platform_get_primary_screen(ctx);
-    wpdl_result_t screen_rect = {false, 0, 0, 0, 0};
+    sh_rect_t screen_rect = {false, 0, 0, 0, 0};
 
     screen_size_t screen_size = platform_get_screen_size(ctx, screen);
 
@@ -129,7 +128,7 @@ int main() {
             }
             renderer_setbgcol(0,0,0,1);
             renderer_clear();
-            renderer_draw(entities, wpdl_result_t(false, 0,0, windows[i].width, windows[i].height));
+            renderer_draw(entities, sh_rect_t(false, 0,0, windows[i].width, windows[i].height));
             platform_swap_buffers(windows[i].gl_context);
             ++i;
         }

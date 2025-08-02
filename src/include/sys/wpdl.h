@@ -1,11 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include <utils/engine_types.h>
 #include <string>
 
-struct wpdl_result_t {
-    bool error;
-    size_t x,y,width, height;
-};
-
-wpdl_result_t wpdl_parse(const std::string& wpdl,wpdl_result_t first_window,wpdl_result_t last_window,wpdl_result_t screen);
+sh_rect_t wpdl_parse(const std::string& wpdl,sh_rect_t first_window,sh_rect_t last_window,sh_rect_t screen);

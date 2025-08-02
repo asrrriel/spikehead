@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <string>
 #include "simdjson/simdjson.h"
+#include "utils/engine_types.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "nothings/stb_image.h"
@@ -64,7 +65,7 @@ bool load_asset_pack(asset_pack_location_t pack){
     return true;
 }
 
-project_manifest_t get_project_manifest(wpdl_result_t screen){
+project_manifest_t get_project_manifest(sh_rect_t screen){
     project_manifest_t toret;
 
     //runtime version
@@ -103,8 +104,8 @@ project_manifest_t get_project_manifest(wpdl_result_t screen){
         return toret; // default-constructed
     }
 
-    wpdl_result_t first;
-    wpdl_result_t last;
+    sh_rect_t first;
+    sh_rect_t last;
 
     first.error = true;
     last.error = true;
@@ -120,7 +121,7 @@ project_manifest_t get_project_manifest(wpdl_result_t screen){
         }
         toret_window.name = std::string(name);
         toret_window.borderless = bool(borderless);
-        wpdl_result_t wpdl_result = wpdl_parse(std::string(positioning),first,last,screen);
+        sh_rect_t wpdl_result = wpdl_parse(std::string(positioning),first,last,screen);
         
         if(wpdl_result.error){
             std::cerr << "[FATAL] invalid wdpl on window \"" << toret_window.name << "\".\n";
