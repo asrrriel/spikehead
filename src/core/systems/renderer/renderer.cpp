@@ -70,6 +70,8 @@ platform_gl_context_t renderer_init(platform_context_t context, platform_window_
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+
 
     __renderer_print_errors();
 

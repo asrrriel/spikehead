@@ -97,8 +97,6 @@ int main() {
     }
 
     void* t = renderer_create_transform(Vec2((float[2]){0, 0}), Vec2((float[2]){200, 200}),0);
-    
-    transform2d_t* transform = (transform2d_t*)t; //for modification
 
     if(!e.add_component(COMP_TYPE_TRANSFORM_2D, t)){
         exit(69);
@@ -111,6 +109,26 @@ int main() {
     }
 
     entities.push_back(e);
+
+    Entity f; 
+
+    if(!f.add_component(COMP_TYPE_SQUARE, NULL)){
+        exit(69);
+    }
+
+    void* t2 = renderer_create_transform(Vec2((float[2]){0, 0}), Vec2((float[2]){300, 300}),0);
+    
+    if(!f.add_component(COMP_TYPE_TRANSFORM_2D, t2)){
+        exit(69);
+    }
+
+    void* mat2 = renderer_create_color_material(Vec4((float[4]){1, 0, 0, 0.2}));
+
+    if(!f.add_component(COMP_TYPE_MAT_COLOR, mat2)){
+        exit(69);
+    }
+
+    entities.push_back(f);
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -132,13 +150,6 @@ int main() {
             platform_swap_buffers(windows[i].gl_context);
             ++i;
         }
-
-        auto now = std::chrono::high_resolution_clock::now();
-        float elapsedSeconds = std::chrono::duration<float>(now - startTime).count();
-
-        transform->rotation = elapsedSeconds;
-        transform->changed = true;
-
     }
 
     platform_deinit(ctx);
