@@ -90,6 +90,26 @@ int main() {
         windows.push_back(engine_window_t(p_window, gl_context, manifest.windows[i].width, manifest.windows[i].height));
     }
 
+    Entity f; 
+
+    if(!f.add_component(COMP_TYPE_SQUARE, NULL)){
+        exit(69);
+    }
+
+    void* t2 = renderer_create_transform(Vec2((float[2]){0, 0}), Vec2((float[2]){300, 300}),3.14259/4.);
+    
+    if(!f.add_component(COMP_TYPE_TRANSFORM_2D, t2)){
+        exit(69);
+    }
+
+    void* mat2 = renderer_create_color_material(Vec4((float[4]){1, 0, 0, 1}));
+
+    if(!f.add_component(COMP_TYPE_MAT_COLOR, mat2)){
+        exit(69);
+    }
+
+    entities.push_back(f);
+
     Entity e; 
 
     if(!e.add_component(COMP_TYPE_SQUARE, NULL)){
@@ -109,26 +129,6 @@ int main() {
     }
 
     entities.push_back(e);
-
-    Entity f; 
-
-    if(!f.add_component(COMP_TYPE_SQUARE, NULL)){
-        exit(69);
-    }
-
-    void* t2 = renderer_create_transform(Vec2((float[2]){0, 0}), Vec2((float[2]){300, 300}),0);
-    
-    if(!f.add_component(COMP_TYPE_TRANSFORM_2D, t2)){
-        exit(69);
-    }
-
-    void* mat2 = renderer_create_color_material(Vec4((float[4]){1, 0, 0, 0.2}));
-
-    if(!f.add_component(COMP_TYPE_MAT_COLOR, mat2)){
-        exit(69);
-    }
-
-    entities.push_back(f);
 
     auto startTime = std::chrono::high_resolution_clock::now();
 

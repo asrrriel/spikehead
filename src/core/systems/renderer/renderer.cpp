@@ -185,7 +185,7 @@ void __render_material(Entity e, VAO* vao, GLuint index_count, sh_rect_t canvas)
             Mat4 rotation = rotate(Vec4((float[4]){static_cast<float>(cos(t->rotation * 0.5) ), 0, 0, static_cast<float>(sin(t->rotation * 0.5) )}));
             Mat4 translation = translate(Vec3((float[3]){t->position[0], t->position[1], 0}));
             Mat4 scalation = scale(Vec3((float[3]){t->scale[0], t->scale[1], 0}));
-            t->model = rotation * scalation * translation;
+            t->model = translation * rotation * scalation;
             t->changed = false;
         }
         tvp *= t->model;
